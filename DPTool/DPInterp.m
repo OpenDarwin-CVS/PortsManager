@@ -100,8 +100,11 @@ int DPCommandHandler(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Ob
     char *name = (nil != packageName) ? strdup([packageName cString]) : NULL;
     char *version = (nil != packageVersion) ? strdup([packageVersion cString]) : NULL;
 
-    Tcl_PkgRequire(_interp, name, version, 0);
-    [self evaluateCommand: [DPObject objectWithString: packageInit]];
+    if (!Tcl_PkgRequire(_interp, name, version, 0))
+        return NO;
+    
+    if (![self evaluateCommand: [DPObject objectWithString: packageInit]])
+        return NO;
 
     if (name) free(name);
     if (version) free(version);

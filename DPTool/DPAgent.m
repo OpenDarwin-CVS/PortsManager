@@ -75,11 +75,6 @@ static NSString *DPUIPuts = @"ui_puts";
 
         _interpLock = [[NSLock alloc] init];
         _ports = [[NSMutableDictionary alloc] init];
-        
-        // configure our tcl interpreter
-        _interp = [[DPInterp alloc] init];
-        [_interp loadPackage: DPPackageName version: DPPackageVersion usingCommand: DPPackageInit];
-        [_interp redirectCommand: [DPObject objectWithString: DPUIPuts] toObject: self];
 
         // configure our d.o. connection
         _connection = [NSConnection defaultConnection];
@@ -143,6 +138,19 @@ static NSString *DPUIPuts = @"ui_puts";
 
 /** Port operations **/
 
+- (BOOL) agentInit
+{
+
+    // configure our tcl interpreter
+    _interp = [[DPInterp alloc] init];
+    if(![_interp loadPackage: DPPackageName version: DPPackageVersion usingCommand: DPPackageInit])
+        return (NO);
+    if(![_interp redirectCommand: [DPObject objectWithString: DPUIPuts] toObject: self])
+        return (NO);
+
+    return (YES);
+
+}
 
 - (bycopy NSData *) portsData
 /*

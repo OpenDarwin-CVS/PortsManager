@@ -1,0 +1,12 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {newWindow = id; showConsole = id; }; 
+            CLASS = DPApp; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+    ); 
+    IBVersion = 1; 
+}

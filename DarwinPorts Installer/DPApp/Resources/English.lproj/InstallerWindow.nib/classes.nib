@@ -1,0 +1,19 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {install = id; }; 
+            CLASS = DPInstallWindow; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                "_backButton" = NSButton; 
+                "_continueButton" = NSButton; 
+                "_progressIndicator" = NSProgressIndicator; 
+                "_tabView" = NSTabView; 
+                "_textField" = NSTextField; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }
+    ); 
+    IBVersion = 1; 
+}

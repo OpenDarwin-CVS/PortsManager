@@ -80,12 +80,46 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 }
 
 
+- (void) performInstallation
+{
+    if (NSRunAlertPanel(@"PortsManager", @"The DarwinPorts Infrastructure could not be located. Please install it and relaunch PortsManager.", @"Install", @"Quit", nil) != NSAlertDefaultReturn)
+        [NSApp terminate: self];
+    else {
+        NSString *installerPath = [[NSBundle mainBundle] pathForResource: @"DarwinPorts Installer" ofType: @"app"];
+        [[NSWorkspace sharedWorkspace] launchApplication: installerPath showIcon: NO autolaunch: NO];
+        [NSApp terminate: self];
+    }
+}
+
 - (id <DPAgentProtocol>) agent
 {
 
+    /*
+     * _agentBusy is a check to prevent concurrent access
+     * via the runloop. If _agentBusy is set to YES, a condition exists that
+     * will prevent the agent from starting. Until that condition is resolved,
+     * agent must return nil. If this does not occur, there will be multiple attempts
+     * to start the agent and resolve the blocking condition.
+     */
+    if (_agentBusy)
+        return nil;
+
+    _agentBusy = YES;
+    if (!_connection)
+    {
+        _connection = [NSConnection defaultConnection];
+        [_connection setRootObject: self];
+        [_connection enableMultipleThreads];
+        if ([_connection registerName: @"PMApp"] == NO)
+        {
+            NSLog(@"Couldn't register PMApp connection on this host.");
+            exit(0);
+        }
+    }
+    
     if (!_agent)
     {
-    
+        id <DPAgentProtocol> agent;
         struct stat sb;
         NSString *agentPath = [[NSBundle mainBundle] pathForResource: @"dpagent" ofType: @""];
         int i;
@@ -100,15 +134,6 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
         }
         
         [NSTask launchedTaskWithLaunchPath: agentPath arguments: [NSArray array]];
-        
-        _connection = [NSConnection defaultConnection];
-        [_connection setRootObject: self];
-        [_connection enableMultipleThreads];
-        if ([_connection registerName: @"PMApp"] == NO) 
-        {
-            NSLog(@"Couldn't register PMApp connection on this host.");
-            exit(0);
-        }
 
         for (i = 0; i<10; i++)
         {
@@ -126,15 +151,29 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
             exit(0);
         }
         
-        _agent = [[_connection rootProxy] retain];
-        [(NSDistantObject *)_agent setProtocolForProxy: @protocol(DPAgentProtocol)];
+        agent = [[_connection rootProxy] retain];
+        [(NSDistantObject *)agent setProtocolForProxy: @protocol(DPAgentProtocol)];
         [_connection setRootObject: self];
+        if (![agent agentInit])
+        {
+            /*
+             * Performing this in the future allows us to display a dialog
+             * without restarting the runloop from within this accessor.
+             * Starting the runloop within this accessor can lead to concurrency
+             * issues as other events in the runloop can trigger calls to this
+             * accessor
+             */
+            [self performSelector: @selector(performInstallation) withObject: nil afterDelay: 0.0];
+            return nil;
+        }
         [[NSNotificationCenter defaultCenter] addObserver: self
             selector: @selector(connectionDidDie:)
             name: NSConnectionDidDieNotification
             object: _connection];
-
+        
+        _agent = agent;
     }
+    _agentBusy = NO;
     return _agent;
 }
 
@@ -244,7 +283,7 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
     // that in the future we should have some UI for displaying them and
     // cancelling them - perhaps similar to the Safari downloads manager
     [_operations addObject: op];
-    [_agent executeTarget: target forPortName: portName];
+    [[self agent] executeTarget: target forPortName: portName];
 }
 
 

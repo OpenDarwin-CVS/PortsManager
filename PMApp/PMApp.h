@@ -43,6 +43,7 @@ extern NSString *DPPortProgressNotification;
 
     NSConnection *_connection;
     id <DPAgentProtocol> _agent;
+    BOOL _agentBusy;
 
     NSDictionary *_ports;
     NSMutableArray *_categories;
