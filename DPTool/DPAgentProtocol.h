@@ -55,6 +55,7 @@
 
 - (bycopy NSData *) portsData;
 - (oneway void) executeTarget: (in bycopy NSString *)target forPortName: (in bycopy NSString *)portName;
+- (oneway void) terminate;
 
 @end
 

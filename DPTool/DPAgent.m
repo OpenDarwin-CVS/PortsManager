@@ -85,6 +85,7 @@ static NSString *DPUIPuts = @"ui_puts";
         _connection = [NSConnection defaultConnection];
         [_connection setRootObject: self];
         [_connection enableMultipleThreads];
+        [_connection setDelegate: self];
         if ([_connection registerName: @"DPAgent"] == NO) 
         {
             NSLog(@"Couldn't register server on this host.");
@@ -111,6 +112,20 @@ static NSString *DPUIPuts = @"ui_puts";
 
 
 /** D.O. connection management **/
+
+
+- (BOOL) connection: (NSConnection *)parentConnection shouldMakeNewConnection:(NSConnection *)newConnection
+{
+    /*
+     * Ensure that connectionDidDie: is called if newConnection
+     * dies without terminate being called
+     */
+    [[NSNotificationCenter defaultCenter] addObserver:self
+	selector: @selector(connectionDidDie:)
+        name: NSConnectionDidDieNotification
+        object: newConnection];
+    return YES;
+}
 
 
 - (void) connectionDidDie: (id)connection

@@ -68,6 +68,12 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 }
 
 
+- (void) applicationWillTerminate: (NSNotification *) notification
+{
+    [_agent terminate];
+}
+
+
 - (void) newWindow: (id)sender
 {
     [[[PMBrowser alloc] init] showWindow: self];    
