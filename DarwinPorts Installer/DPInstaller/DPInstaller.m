@@ -123,6 +123,43 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     [_dpapplication postUIEvent: message];
 }
 
+
+- (BOOL) executeTaskWithLaunchPath: (NSString *) launchPath
+                         arguments: (NSArray *) arguments
+                      startMessage: (NSString *) startMessage
+                    failureMessage: (NSString *) failureMessage
+                     workDirectory: (NSString *) workDirectory
+                  percentComplete: (NSNumber *) percentComplete
+{
+    NSTask *task;
+
+    if (startMessage)
+        [self postUIEvent: startMessage withPriority: DPPriorityExecutionState];
+
+    task = [NSTask taskWithLaunchPath: launchPath arguments: arguments];
+    [task setStandardOutput: [NSPipe pipe]];
+    [task setStandardError: [task standardOutput]];
+    if (workDirectory)
+        [task setCurrentDirectoryPath: workDirectory];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(taskDataAvailable:)
+                                                 name: NSFileHandleReadCompletionNotification
+                                               object: [[task standardOutput] fileHandleForReading]];
+    [[[task standardOutput] fileHandleForReading] readInBackgroundAndNotify];
+
+    [task launch];
+    [task waitUntilExit];
+    if ([task terminationStatus] != 0) {
+        if (failureMessage)
+            [self postUIEvent: failureMessage withPriority: DPPriorityError];
+        return NO;
+    }
+    if (percentComplete)
+        [self postUIEvent: percentComplete withPriority: DPPriorityExecutionPercent];
+    return YES;
+}
+
 /** Install Operations **/
 
 - (oneway void) executeInstallWithUserID: (int) uid withGroupID: (int) gid withUserDirectory: (NSString *) userDirectory
@@ -142,8 +179,8 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     char *workDirCString = strdup("/tmp/org.opendarwin.darwinports.install.XXXXXXX");
 
     if ((workDirCString = mkdtemp(workDirCString)) == NULL) {
-        /* Unable to create temporary directory */
-        [self postUIEvent: @"Unable to create temporary working directory" withPriority: DPPriorityError];
+        /* Unable to create temporary working directory */
+        [self postUIEvent: @"Unable to create temporary folder" withPriority: DPPriorityError];
         return;
     }
 
@@ -189,58 +226,38 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     /*
      * Extract using GNU tar
      */
-    [self postUIEvent: @"Extracting" withPriority: DPPriorityExecutionState];
     currentOp++;
-    
-    NSTask *tar = [NSTask taskWithLaunchPath: DPGNUTarPath arguments:
-        [NSArray arrayWithObjects: @"-C", _workDirectory, @"-xzvf", outputFile, nil]];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(taskDataAvailable:)
-                                                 name: NSFileHandleReadCompletionNotification
-                                               object: [[tar standardOutput] fileHandleForReading]];
-    [[[tar standardOutput] fileHandleForReading] readInBackgroundAndNotify];
-
-    [tar launch];
-    [tar waitUntilExit];
-    [self postUIEvent: [NSNumber numberWithDouble: (currentOp / totalOps) * 100] withPriority: DPPriorityExecutionPercent];
+    if (![self executeTaskWithLaunchPath: DPGNUTarPath
+                               arguments: [NSArray arrayWithObjects: @"-xzvf", outputFile, nil]
+                            startMessage: @"Extracting"
+                          failureMessage: @"Unable to extract DarwinPorts distribution"
+                           workDirectory: _workDirectory
+                        percentComplete: [NSNumber numberWithDouble: (currentOp / totalOps) * 100]])
+        return;
 
     /*
      * Run configure script
      */
-    [self postUIEvent: @"Configuring Sources" withPriority: DPPriorityExecutionState];
     currentOp++;
-
-    NSTask *configure = [NSTask taskWithLaunchPath: [NSString stringWithFormat: @"%@/%@", _workSourceDirectory, @"configure"]
-                                         arguments: [NSArray array]];
-    [configure setCurrentDirectoryPath: _workSourceDirectory];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(taskDataAvailable:)
-                                                 name: NSFileHandleReadCompletionNotification
-                                               object: [[configure standardOutput] fileHandleForReading]];
-    [configure launch];
-    [[[configure standardOutput] fileHandleForReading] readInBackgroundAndNotify];
-    [configure waitUntilExit];
-    [self postUIEvent: [NSNumber numberWithDouble: (currentOp / totalOps) * 100] withPriority: DPPriorityExecutionPercent];
+    if (![self executeTaskWithLaunchPath: [NSString stringWithFormat: @"%@/%@", _workSourceDirectory, @"configure"]
+                               arguments: [NSArray array]
+                            startMessage: @"Configuring Sources"
+                          failureMessage: @"Unable to configure DarwinPorts distribution"
+                           workDirectory: _workSourceDirectory
+                        percentComplete: [NSNumber numberWithDouble: (currentOp / totalOps) * 100]])
+        return;
 
     /*
      * Start build using make
      */
     currentOp++;
-    [self postUIEvent: @"Building" withPriority: DPPriorityExecutionState];
-
-    NSTask *build = [NSTask taskWithLaunchPath: DPGNUMakePath arguments: [NSArray arrayWithObjects: @"-C", _workSourceDirectory, nil]];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(taskDataAvailable:)
-                                                 name: NSFileHandleReadCompletionNotification
-                                               object: [[build standardOutput] fileHandleForReading]];
-    [[[build standardOutput] fileHandleForReading] readInBackgroundAndNotify];
-
-    [build launch];
-    [build waitUntilExit];
-    [self postUIEvent: [NSNumber numberWithDouble: (currentOp / totalOps) * 100] withPriority: DPPriorityExecutionPercent];
+    if (![self executeTaskWithLaunchPath: DPGNUMakePath
+                               arguments: [NSArray array]
+                            startMessage: @"Building"
+                          failureMessage: @"Unable to build DarwinPorts distribution"
+                           workDirectory: _workSourceDirectory
+                        percentComplete: [NSNumber numberWithDouble: (currentOp / totalOps) * 100]])
+        return;
 
     /*
      * Install software
@@ -248,20 +265,15 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     
     setegid(getgid());
     seteuid(getuid());
-    
-    [self postUIEvent: @"Installing" withPriority: DPPriorityExecutionState];
+
     currentOp++;
-    NSTask *install = [NSTask taskWithLaunchPath: DPGNUMakePath arguments: [NSArray arrayWithObjects: @"-C", _workSourceDirectory, @"install", nil]];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(taskDataAvailable:)
-                                                 name: NSFileHandleReadCompletionNotification
-                                               object: [[install standardOutput] fileHandleForReading]];
-    [[[install standardOutput] fileHandleForReading] readInBackgroundAndNotify];
-
-    [install launch];
-    [install waitUntilExit];
-    [self postUIEvent: [NSNumber numberWithDouble: (currentOp / totalOps) * 100] withPriority: DPPriorityExecutionPercent];
+    if (![self executeTaskWithLaunchPath: DPGNUMakePath
+                               arguments: [NSArray arrayWithObjects: @"install", nil]
+                            startMessage: @"Installing"
+                          failureMessage: @"Unable to install DarwinPorts distribution"
+                           workDirectory: _workSourceDirectory
+                        percentComplete: [NSNumber numberWithDouble: (currentOp / totalOps) * 100]])
+        return;
 
     /*
      * Configure Sources.conf
@@ -270,7 +282,7 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     [self postUIEvent: @"Configuring Installation" withPriority: DPPriorityExecutionState];
     currentOp++;
     
-    NSString *sourceURL = [NSString stringWithFormat: @"file:///%@/dports\n", userDirectory];
+    NSString *sourceURL = [NSString stringWithFormat: @"file://%@/dports\n", userDirectory];
     int configfd = open("/etc/ports/sources.conf", (O_WRONLY | O_APPEND), NULL);
     NSFileHandle *configFile = [[NSFileHandle alloc] initWithFileDescriptor: configfd];
     
@@ -294,29 +306,25 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     if (stat([userDirectory fileSystemRepresentation], &sb) == 0) {
         if (!(sb.st_mode & S_IFDIR))
         {
-            [self postUIEvent: [NSString stringWithFormat: @"Unable to install portfiles, %@ is not a directory", userDirectory] withPriority: DPPriorityError];
+            [self postUIEvent: [NSString stringWithFormat: @"Unable to install portfiles, %@ is not a folder", userDirectory] withPriority: DPPriorityError];
             return;
         }
     } else {
         if(mkdir([userDirectory fileSystemRepresentation], S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) != 0) {
-            [self postUIEvent: [NSString stringWithFormat: @"Unable to create directory %@", userDirectory] withPriority: DPPriorityError];
+            [self postUIEvent: [NSString stringWithFormat: @"Unable to create folder %@", userDirectory] withPriority: DPPriorityError];
             return;
         }
     }
-    
-    tar = [NSTask taskWithLaunchPath: DPGNUTarPath arguments:
-        [NSArray arrayWithObjects: @"-C", userDirectory, @"-xzvf", dportsOutputFile, nil]];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(taskDataAvailable:)
-                                                 name: NSFileHandleReadCompletionNotification
-                                               object: [[tar standardOutput] fileHandleForReading]];
-    [[[tar standardOutput] fileHandleForReading] readInBackgroundAndNotify];
+    if (![self executeTaskWithLaunchPath: DPGNUTarPath
+                               arguments: [NSArray arrayWithObjects: @"-xzvf", dportsOutputFile, nil]
+                            startMessage: nil
+                          failureMessage: @"Unable to install Darwin Portfiles"
+                           workDirectory: userDirectory
+                        percentComplete: [NSNumber numberWithDouble: (currentOp / totalOps) * 100]])
+        return;
 
-    [tar launch];
-    [tar waitUntilExit];
     [self postUIEvent: @"Completed" withPriority: DPPriorityDidFinish];
-    [self postUIEvent: [NSNumber numberWithDouble: (currentOp / totalOps) * 100] withPriority: DPPriorityExecutionPercent];
 }
 
 - (void) taskDataAvailable: (NSNotification *) aNotification {

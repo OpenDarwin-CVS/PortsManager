@@ -38,6 +38,12 @@
 
 static NSString *DPWelcomeTabViewIdentifier = @"welcome";
 static NSString *DPInstallTabViewIdentifier = @"install";
+enum {
+    DPWindowWelcomeState,
+    DPWindowInstallState,
+    DPWindowInstallBusyState,
+    DPWindowCompleteState
+};
 
 @implementation DPInstallWindow
 
@@ -63,38 +69,112 @@ static NSString *DPInstallTabViewIdentifier = @"install";
     return self;
 }
 
-- (void) tabView: (NSTabView *) tabView willSelectTabViewItem: (NSTabViewItem *) tabViewItem
+
+- (BOOL) windowShouldClose: (id) sender
 {
-    if ([DPInstallTabViewIdentifier isEqualToString: [tabViewItem identifier]]) {
-        [_continueButton setEnabled: YES];
-        [_continueButton setTitle: @"Install"];
-        [_continueButton setTarget: self];
-        [_continueButton setAction: NSSelectorFromString(@"install:")];
-        [_backButton setEnabled: YES];
-    } else if ([DPWelcomeTabViewIdentifier isEqualToString: [tabViewItem identifier]]) {
-        [_continueButton setEnabled: YES];
-        [_backButton setEnabled: NO];
-        [_continueButton setTitle: @"Continue"];
-        [_continueButton setTarget: tabView];
-        [_continueButton setAction: NSSelectorFromString(@"selectNextTabViewItem:")];
+    if (!_installBusy)
+        return YES;
+    
+    if (NSRunAlertPanel(@"DarwinPorts Installer", @"Are you sure you want to quit? Stopping the Installer now may leave your system in an unstable state.", @"Continue", @"Quit", nil) == NSAlertDefaultReturn)
+        return NO;
+    else
+        return YES;
+}
+
+/* configure window UI elements */
+
+- (void) setWindowState: (int) state
+{
+    switch (state) {
+        case DPWindowWelcomeState:
+            _installBusy = NO;
+            [_continueButton setEnabled: YES];
+            [_backButton setEnabled: NO];
+            [_continueButton setTitle: @"Continue"];
+            [_continueButton setTarget: _tabView];
+            [_continueButton setAction: NSSelectorFromString(@"selectNextTabViewItem:")];
+            break;
+            
+        case DPWindowInstallState:
+            _installBusy = NO;
+            [_continueButton setEnabled: YES];
+            [_continueButton setTitle: @"Install"];
+            [_continueButton setTarget: self];
+            [_continueButton setAction: NSSelectorFromString(@"install:")];
+
+            [_progressIndicator stopAnimation: self];
+            [_progressIndicator setDisplayedWhenStopped: NO];
+            [_progressIndicator setDoubleValue: 0];
+            
+            [_textField setStringValue: @""];
+            
+            [_backButton setEnabled: YES];
+            break;
+
+        case DPWindowInstallBusyState:
+            _installBusy = YES;
+            [_progressIndicator startAnimation: self];
+
+            [_continueButton setEnabled: NO];
+            [_backButton setEnabled: NO];
+            break;
+            
+        case DPWindowCompleteState:
+            _installBusy = NO;
+            [_continueButton setTitle: @"Quit"];
+            [_continueButton setEnabled: YES];
+            [_continueButton setTarget: NSApp];
+            [_continueButton setAction: NSSelectorFromString(@"terminate:")];
+
+            [_textField setStringValue: @"The software was successfully installed"];
+
+            /* display progress bar when installation is finished */
+            [_progressIndicator setDisplayedWhenStopped: YES];
+            [_progressIndicator stopAnimation: self];
+            break;
     }
 }
 
+/* tabView delegate */
+- (void) tabView: (NSTabView *) tabView willSelectTabViewItem: (NSTabViewItem *) tabViewItem
+{
+    if ([DPInstallTabViewIdentifier isEqualToString: [tabViewItem identifier]]) {
+        [self setWindowState: DPWindowInstallState];
+        
+    } else if ([DPWelcomeTabViewIdentifier isEqualToString: [tabViewItem identifier]]) {
+        [self setWindowState: DPWindowWelcomeState];
+    
+    }
+}
+
+
+- (void) tabView: (NSTabView *) tabView didSelectTabViewItem: (NSTabViewItem *) tabViewItem
+{
+    /* keep image on top */
+    [_imageView display];
+}
+
+
+/* install action */
+
 - (IBAction) install: (id) sender {
     NSArray *paths;
-    NSLog(@"Running Installation");
-    [_progressIndicator startAnimation: self];
+    id <DPInstallerProtocol> installer = [(DPApp *) [NSApp delegate] installer];
 
-    [_continueButton setEnabled: NO];
-    [_backButton setEnabled: NO];
+    if (!installer)
+        return;
+
+    NSLog(@"Running Installation");
+    [self setWindowState: DPWindowInstallBusyState];
+    
     paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory, NSUserDomainMask, YES);
     if ([paths count] == 0) {
-        NSBeginAlertSheet(@"Installation Failed", nil, nil, nil, [self window], nil, nil, nil, nil, @"Could not locate \"~/Library/Application Support\" directory");
+        NSRunAlertPanel(@"Installation Failed", @"Could not locate \"~/Library/Application Support\" folder", nil, nil, nil);
         return;
     }
-    [[(DPApp *) [NSApp delegate] installer] executeInstallWithUserID: getuid()
-                                                         withGroupID: getgid()
-                                                   withUserDirectory: [NSString stringWithFormat: @"%@/Application Support/DarwinPorts/", [paths objectAtIndex: 0]]];
+    [installer executeInstallWithUserID: getuid()
+                            withGroupID: getgid()
+                      withUserDirectory: [NSString stringWithFormat: @"%@/Application Support/DarwinPorts/", [paths objectAtIndex: 0]]];
 }
 
 
@@ -105,22 +185,23 @@ static NSString *DPInstallTabViewIdentifier = @"install";
 
     if ([priority isEqualToString: DPPriorityError]) {
         NSString *data = [entry objectForKey: DPEventDataKey];
-        NSBeginAlertSheet(@"Installation Failed", nil, nil, nil, [self window], nil, nil, nil, nil, data);
-        [_progressIndicator stopAnimation: self];
+        
+        NSRunAlertPanel(@"Installation Failed", data, nil, nil, nil);
+
+        [self setWindowState: DPWindowInstallState];
         return;
+        
     } else if ([priority isEqualToString: DPPriorityExecutionState]) {
         NSString *data = [entry objectForKey: DPEventDataKey];
         [_textField setStringValue: [NSString stringWithFormat: @"%@...", data]];
+        
     } else if ([priority isEqualToString: DPPriorityExecutionPercent]) {
         NSNumber *data = [entry objectForKey: DPEventDataKey];
         [_progressIndicator setDoubleValue: [data doubleValue]];
+        
     } else if ([priority isEqualToString: DPPriorityDidFinish]) {
-        [_continueButton setTitle: @"Quit"];
-        [_continueButton setEnabled: YES];
-        [_continueButton setTarget: NSApp];
-        [_continueButton setAction: NSSelectorFromString(@"terminate:")];
-        [_textField setStringValue: @"Installed"];
-        [_progressIndicator stopAnimation: self];
+        [self setWindowState: DPWindowCompleteState];
+        
     }
 }
 

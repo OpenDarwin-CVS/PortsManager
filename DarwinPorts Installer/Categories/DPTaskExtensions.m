@@ -38,11 +38,6 @@
 + (NSTask *) taskWithLaunchPath: (NSString *) launchPath arguments: (NSArray *) arguments 
 {
     NSTask *task = [[[self alloc] init] autorelease];
-
-    /* XXX DPInstaller specific */
-    [task setStandardOutput: [NSPipe pipe]];
-    [task setStandardError: [task standardOutput]];
-
     [task setLaunchPath: launchPath];
     [task setArguments: arguments];
     return task;

@@ -163,6 +163,28 @@
 			settings = {
 			};
 		};
+		0567C4D1047C91FF00F9CC84 = {
+			children = (
+				0567C4D2047C91FF00F9CC84,
+			);
+			isa = PBXVariantGroup;
+			name = InfoPlist.strings;
+			path = "";
+			refType = 4;
+		};
+		0567C4D2047C91FF00F9CC84 = {
+			fileEncoding = 10;
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/InfoPlist.strings;
+			refType = 4;
+		};
+		0567C4D3047C91FF00F9CC84 = {
+			fileRef = 0567C4D1047C91FF00F9CC84;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		056E015E047B264B001D1C5E = {
 			children = (
 				056E016D047B7775001D1C5E,
@@ -338,7 +360,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.1</string>
+	<string>1.0</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
@@ -932,6 +954,7 @@
 				474CF6AB03CA876A00A80166,
 				1788172703CA47BE00CB2C3D,
 				F55BD9C303E20A8B0100010E,
+				0567C4D1047C91FF00F9CC84,
 				F5FE13B903EB1AF501A80001,
 				05D7BA7E04798BFE00A80002,
 				F537476203EECFD001A80001,
@@ -1003,7 +1026,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>1.0</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
@@ -1052,6 +1075,7 @@
 				05507AC60457724200CA2DB2,
 				05507AC70457724200CA2DB2,
 				05D7BBAA047995D700A80002,
+				0567C4D3047C91FF00F9CC84,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

@@ -43,6 +43,7 @@ NSString *DPInstallerUIEventNotification = @"DPInstallerUIEventNotification";
 
 @implementation DPApp
 
+
 /*
  * Application delegate. Manages communication with the dpinstaller process
  * via DO.
@@ -54,20 +55,35 @@ NSString *DPInstallerUIEventNotification = @"DPInstallerUIEventNotification";
     return YES;
 }
 
+
 - (void) newWindow: (id)sender
 {
     [[DPInstallWindow sharedWindow] showWindow: self];
 }
+
 
 - (IBAction) showConsole: (id)sender
 {
     [[DPConsole sharedConsole] showWindow: self];
 }
 
+
 - (void) applicationWillTerminate: (NSNotification *) notification
 {
     [_installer terminate];
 }
+
+
+- (NSApplicationTerminateReply) applicationShouldTerminate: (NSApplication *) app
+{
+    NSWindowController *windowController = [DPInstallWindow sharedWindow];
+    /* Check only DPInstallWindow */
+    if ([windowController windowShouldClose: [windowController window]])
+        return NSTerminateNow;
+    else
+        return NSTerminateCancel;
+}
+
 
 - (void) applicationDidFinishLaunching: (NSNotification *) notification
 {
@@ -80,6 +96,7 @@ NSString *DPInstallerUIEventNotification = @"DPInstallerUIEventNotification";
         exit(0);
     }
 }
+
 
 - (id <DPInstallerProtocol>) installer
 {
@@ -98,11 +115,13 @@ NSString *DPInstallerUIEventNotification = @"DPInstallerUIEventNotification";
         OSStatus err = AuthorizationCreate(NULL, NULL, kAuthorizationFlagInteractionAllowed, &auth);
         if (err) {
             NSRunAlertPanel(@"DarwinPorts Installer", @"Authorization Failed", nil, nil, nil);
-            exit(0);
+            _installerBusy = NO;
+            return nil;
         }
         err = AuthorizationExecuteWithPrivileges(auth, [installerPath fileSystemRepresentation], 0, NULL, NULL);
         if (err != errAuthorizationSuccess) {
-            exit(0);
+            _installerBusy = NO;
+            return nil;
         }
         AuthorizationFree(auth, 0);
         
@@ -144,10 +163,12 @@ NSString *DPInstallerUIEventNotification = @"DPInstallerUIEventNotification";
     // be spawned by [PMApp installer] next time someone tries to access it
 }
 
+
 - (NSArray *) messages
 {
     return _messages;
 }
+
 
 - (oneway void) postUIEvent: (in bycopy NSDictionary *) message;
 {
@@ -160,5 +181,6 @@ NSString *DPInstallerUIEventNotification = @"DPInstallerUIEventNotification";
                                                         object: self
                                                       userInfo: message];
 }
+
 
 @end

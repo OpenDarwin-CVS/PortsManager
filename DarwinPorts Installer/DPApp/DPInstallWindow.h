@@ -36,11 +36,13 @@
 @interface DPInstallWindow : NSWindowController {
     IBOutlet NSTabView *_tabView;
     IBOutlet NSTextField *_textField;
+    IBOutlet NSImageView *_imageView;
     IBOutlet NSProgressIndicator *_progressIndicator;
     IBOutlet NSButton *_continueButton;
     IBOutlet NSButton *_backButton;
     
     NSRange _textViewEndRange;
+    BOOL _installBusy;
 }
 
 + (DPInstallWindow *) sharedWindow;
