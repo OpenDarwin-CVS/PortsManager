@@ -326,15 +326,15 @@
 	<key>CFBundleIconFile</key>
 	<string>DarwinPorts Installer</string>
 	<key>CFBundleIdentifier</key>
-	<string></string>
+	<string>org.opendarwin.DarwinPortsInstaller</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string></string>
+	<string>DarwinPorts Installer</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string></string>
+	<string>1.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -554,7 +554,7 @@
 			refType = 4;
 		};
 		05D7BB37047991FB00A80002 = {
-			fileEncoding = 30;
+			fileEncoding = 10;
 			isa = PBXFileReference;
 			name = English;
 			path = English.lproj/InfoPlist.strings;
@@ -960,8 +960,6 @@
 				29B9732DFDCFA39411CA2CEA,
 			);
 			buildSettings = {
-				ALTERNATE_MODE = 4755;
-				ALTERNATE_PERMISSIONS_FILES = "\"Ports Manager.app/Contents/Resources/dpagent\"";
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = "";
 				INSTALL_PATH = /Applications/Utilities;
@@ -996,10 +994,12 @@
 	<string>org.opendarwin.PortsManager</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Ports Manager</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1</string>
+	<string>1.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -1559,7 +1559,7 @@
 			};
 		};
 		F5FE13B903EB1AF501A80001 = {
-			fileEncoding = 30;
+			fileEncoding = 10;
 			isa = PBXFileReference;
 			name = Localizable.strings;
 			path = Resources/Localizable.strings;
