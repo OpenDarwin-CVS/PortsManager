@@ -35,8 +35,11 @@
 NSString *DPGNUTarPath = @"/usr/bin/gnutar";
 NSString *DPGNUMakePath = @"/usr/bin/gnumake";
 NSString *DPDPortsSourceDir = @"dports_base";
-NSString *DPDPortsBaseURL = @"http://www.opendarwin.org/downloads/dports_base-latest.tar.gz";
-NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dports-latest.tar.gz";
+/*
+ * We require revision "1" compatible file releases
+ */
+NSString *DPDPortsBaseURL = @"http://www.opendarwin.org/downloads/DarwinPorts/dports_base-latest-1.tar.gz";
+NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/DarwinPorts/dports_dports-latest-1.tar.gz";
 
 #import "DPInstallerProtocol.h"
 #import "DPTaskExtensions.h"
@@ -282,7 +285,7 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     [self postUIEvent: @"Configuring Installation" withPriority: DPPriorityExecutionState];
     currentOp++;
     
-    NSString *sourceURL = [NSString stringWithFormat: @"file://%@/dports\n", userDirectory];
+    NSString *sourceURL = [NSString stringWithFormat: @"file://%@\n", userDirectory];
     int configfd = open("/etc/ports/sources.conf", (O_WRONLY | O_APPEND), NULL);
     NSFileHandle *configFile = [[NSFileHandle alloc] initWithFileDescriptor: configfd];
     
@@ -301,6 +304,9 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
 
     [self postUIEvent: @"Installing Darwin Portfiles" withPriority: DPPriorityExecutionState];
     currentOp++;
+
+    setegid(getgid());
+    seteuid(getuid());
     
     struct stat sb;
     if (stat([userDirectory fileSystemRepresentation], &sb) == 0) {
@@ -317,13 +323,16 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/dports_dport
     }
 
     if (![self executeTaskWithLaunchPath: DPGNUTarPath
-                               arguments: [NSArray arrayWithObjects: @"-xzvf", dportsOutputFile, nil]
+                               arguments: [NSArray arrayWithObjects: @"-xzpvf", dportsOutputFile, nil]
                             startMessage: nil
                           failureMessage: @"Unable to install Darwin Portfiles"
                            workDirectory: userDirectory
                         percentComplete: [NSNumber numberWithDouble: (currentOp / totalOps) * 100]])
         return;
 
+    setgid(gid);
+    setuid(uid);
+    
     [self postUIEvent: @"Completed" withPriority: DPPriorityDidFinish];
 }
 

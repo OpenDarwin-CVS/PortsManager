@@ -158,7 +158,6 @@ enum {
 /* install action */
 
 - (IBAction) install: (id) sender {
-    NSArray *paths;
     id <DPInstallerProtocol> installer = [(DPApp *) [NSApp delegate] installer];
 
     if (!installer)
@@ -166,15 +165,13 @@ enum {
 
     NSLog(@"Running Installation");
     [self setWindowState: DPWindowInstallBusyState];
-    
-    paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory, NSUserDomainMask, YES);
-    if ([paths count] == 0) {
-        NSRunAlertPanel(@"Installation Failed", @"Could not locate \"~/Library/Application Support\" folder", nil, nil, nil);
-        return;
-    }
+
+    /*
+     * XXX hard code installation directory to /usr/dports/
+     */
     [installer executeInstallWithUserID: getuid()
                             withGroupID: getgid()
-                      withUserDirectory: [NSString stringWithFormat: @"%@/Application Support/DarwinPorts/", [paths objectAtIndex: 0]]];
+                      withUserDirectory: @"/usr/dports"];
 }
 
 
