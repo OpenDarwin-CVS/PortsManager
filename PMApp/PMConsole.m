@@ -90,16 +90,20 @@
     NSEnumerator *enm = [[(PMApp *)[NSApp delegate] messages] objectEnumerator];
     NSDictionary *entry;
     [_textView setString: @""];
+    _textViewEndRange.location = 0;
     while (entry = [enm nextObject])
     {
         if ([_priorities indexOfObject: [entry objectForKey: @"priority"]] >= [_detailLevelPopUpButton selectedTag])
         {
-            [textStorage appendAttributedString: 
-                [[[NSMutableAttributedString alloc] initWithString:
-                    [NSString stringWithFormat: @"%@:%@:%@\n", 
-                        [entry objectForKey: @"context"],
-                        [entry objectForKey: @"priority"], 
-                        [entry objectForKey: @"data"]]] autorelease]];
+            NSMutableAttributedString *string = [[[NSMutableAttributedString alloc] initWithString:
+                [NSString stringWithFormat: @"%@:%@:%@\n",
+                    [entry objectForKey: @"context"],
+                    [entry objectForKey: @"priority"],
+                    [entry objectForKey: @"data"]]] autorelease];
+
+            _textViewEndRange.location += [string length];
+            [textStorage appendAttributedString: string];
+            [_textView scrollRangeToVisible: _textViewEndRange];
         }
     }
 }
@@ -111,12 +115,15 @@
     NSTextStorage *textStorage = [_textView textStorage];
     if ([_priorities indexOfObject: [entry objectForKey: @"priority"]] >= [_detailLevelPopUpButton selectedTag])
     {
-        [textStorage appendAttributedString: 
-            [[[NSMutableAttributedString alloc] initWithString:
-                [NSString stringWithFormat: @"%@:%@:%@\n", 
-                    [entry objectForKey: @"context"],
-                    [entry objectForKey: @"priority"], 
-                    [entry objectForKey: @"data"]]] autorelease]];
+        NSMutableAttributedString *string = [[[NSMutableAttributedString alloc] initWithString:
+            [NSString stringWithFormat: @"%@:%@:%@\n",
+                [entry objectForKey: @"context"],
+                [entry objectForKey: @"priority"],
+                [entry objectForKey: @"data"]]] autorelease];
+
+        _textViewEndRange.location += [string length];
+        [textStorage appendAttributedString: string];
+        [_textView scrollRangeToVisible: _textViewEndRange];
     }
 }
 

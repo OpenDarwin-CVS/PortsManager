@@ -37,6 +37,8 @@
 @interface PMConsole : NSWindowController 
 {
     NSMutableArray *_priorities;
+    NSRange _textViewEndRange;
+    
     IBOutlet NSTextView *_textView;
     IBOutlet NSPopUpButton *_detailLevelPopUpButton;
 }
