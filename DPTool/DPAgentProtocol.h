@@ -31,7 +31,11 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-// port keys 
+/* mach port names */
+#define DPAgentMessagePort @"org.opendarwin.darwinports.installer.DPAgent"
+#define PMAppMessagePort @"org.opendarwin.darwinports.install.PMApp"
+
+/* port keys */
 #define DPNameKey @"name"
 #define DPVersionKey @"version"
 #define DPPortURLKey @"porturl"
@@ -43,7 +47,7 @@
 #define DPDescriptionKey @"description"
 #define DPLongDescriptionKey @"long_description"
 
-// targets 
+/* targets */
 #define DPBuildTarget @"build"
 #define DPCleanTarget @"clean"
 #define DPChecksumTarget @"checksum"

@@ -81,7 +81,7 @@ static NSString *DPUIPuts = @"ui_puts";
         [_connection setRootObject: self];
         [_connection enableMultipleThreads];
         [_connection setDelegate: self];
-        if ([_connection registerName: @"DPAgent"] == NO) 
+        if ([_connection registerName: DPAgentMessagePort] == NO) 
         {
             NSLog(@"Couldn't register server on this host.");
             exit(0);
@@ -274,7 +274,7 @@ static NSString *DPUIPuts = @"ui_puts";
 
     // establish a separate connection for communication from this thread
     // back to the PortsManager.app
-    NSConnection *connection = [NSConnection connectionWithRegisteredName: @"PMApp" host: nil];
+    NSConnection *connection = [NSConnection connectionWithRegisteredName: PMAppMessagePort host: nil];
     id <DPDelegateProtocol> delegate = [connection rootProxy];
     [connection enableMultipleThreads];    
     [(NSDistantObject *)delegate setProtocolForProxy:@protocol(DPDelegateProtocol)];

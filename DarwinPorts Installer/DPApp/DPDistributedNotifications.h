@@ -1,5 +1,5 @@
 /*
- * DPInstallWindow.h
+ * DPAppDistributedNotifications.h
  * DarwinPorts Installer
  *
  * Copyright (c) 2003 Apple Computer, Inc.
@@ -28,26 +28,10 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-#import <AppKit/AppKit.h>
-
-
-@interface DPInstallWindow : NSWindowController {
-    IBOutlet NSTabView *_tabView;
-    IBOutlet NSTextField *_textField;
-    IBOutlet NSImageView *_imageView;
-    IBOutlet NSProgressIndicator *_progressIndicator;
-    IBOutlet NSButton *_continueButton;
-    IBOutlet NSButton *_backButton;
-    
-    NSRange _textViewEndRange;
-    BOOL _installBusy;
-    int windowState;
-}
-
-+ (DPInstallWindow *) sharedWindow;
-
-- (IBAction) install: (id)sender;
-
-@end
+/* distributed event names */
+NSString *DPInstallerCompleteNotification = @"org.opendarwin.darwinports.installer.dpinstaller.complete";
+NSString *DPInstallerFailedNotification = @"org.opendarwin.darwinports.installer.dpinstaller.failed";
+NSString *DPInstallerCanceledNotification = @"org.opendarwin.darwinports.installer.dpinstaller.canceled";
