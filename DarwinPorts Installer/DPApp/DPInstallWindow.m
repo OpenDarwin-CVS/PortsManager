@@ -33,6 +33,8 @@
 #import "DPApp.h"
 #import "DPInstallWindow.h"
 
+#import "DPDistributedNotifications.h"
+
 #import <sys/types.h>
 #import <unistd.h>
 
@@ -42,7 +44,8 @@ enum {
     DPWindowWelcomeState,
     DPWindowInstallState,
     DPWindowInstallBusyState,
-    DPWindowCompleteState
+    DPWindowCompleteState,
+    DPWindowNoState
 };
 
 @implementation DPInstallWindow
@@ -66,25 +69,40 @@ enum {
                                                      name: DPInstallerUIEventNotification
                                                    object: nil];
     }
+    windowState = DPWindowNoState;
     return self;
 }
 
 
 - (BOOL) windowShouldClose: (id) sender
 {
-    if (!_installBusy)
+    if (!_installBusy && windowState == DPWindowCompleteState)
         return YES;
+
+    if (!_installBusy && windowState != DPWindowCompleteState) {
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName: DPInstallerCanceledNotification
+                                                                       object: nil
+                                                                     userInfo: nil
+                                                           deliverImmediately: YES];
+        return YES;
+    }
     
     if (NSRunAlertPanel(@"DarwinPorts Installer", @"Are you sure you want to quit? Stopping the Installer now may leave your system in an unstable state.", @"Continue", @"Quit", nil) == NSAlertDefaultReturn)
         return NO;
-    else
+    else {
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName: DPInstallerCanceledNotification
+                                                                       object: nil
+                                                                     userInfo: nil
+                                                           deliverImmediately: YES]; 
         return YES;
+    }
 }
 
 /* configure window UI elements */
 
 - (void) setWindowState: (int) state
 {
+    windowState = state;
     switch (state) {
         case DPWindowWelcomeState:
             _installBusy = NO;
@@ -184,7 +202,10 @@ enum {
         NSString *data = [entry objectForKey: DPEventDataKey];
         
         NSRunAlertPanel(@"Installation Failed", data, nil, nil, nil);
-
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName: DPInstallerFailedNotification
+                                                                       object: nil
+                                                                     userInfo: nil
+                                                           deliverImmediately: YES];
         [self setWindowState: DPWindowInstallState];
         return;
         
@@ -198,7 +219,10 @@ enum {
         
     } else if ([priority isEqualToString: DPPriorityDidFinish]) {
         [self setWindowState: DPWindowCompleteState];
-        
+        [[NSDistributedNotificationCenter defaultCenter] postNotificationName: DPInstallerCompleteNotification
+                                                                       object: nil
+                                                                     userInfo: nil
+                                                           deliverImmediately: YES];
     }
 }
 
