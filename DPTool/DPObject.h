@@ -37,6 +37,7 @@
 @interface DPObject : NSObject 
 {
 @private
+    char *_cString;
     NSString *_cocoaString;  
     NSDictionary *_cocoaDictionary;  
     Tcl_Obj *_tclObj;

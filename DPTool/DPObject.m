@@ -45,20 +45,10 @@
 
 + (DPObject *) objectWithString: (NSString *)string
 {
-    static NSMutableDictionary *cachedObjects;
-    DPObject *object = nil;
-    if (!cachedObjects)
-    {
-        cachedObjects = [[NSMutableDictionary alloc] init];
-    }
-    object = [cachedObjects objectForKey: string];
-    if (!object)
-    {
-        const char *cString = [string cString];
-        Tcl_Obj *tclObj = Tcl_NewStringObj(cString, strlen(cString));
-        object = [[[self alloc] initWithTclObj: tclObj] autorelease];
-        [cachedObjects setObject: object forKey: string];
-    }
+    const char *cString = [string cString];
+    Tcl_Obj *tclObj = Tcl_NewStringObj(cString, strlen(cString));
+    DPObject *object = [[[self alloc] initWithTclObj: tclObj] autorelease];
+    
     return object;
 }
 
@@ -84,6 +74,8 @@
 {
     Tcl_DecrRefCount(_tclObj);
     [_cocoaString release];
+    if (_cString != NULL)
+        free(_cString);
     [super dealloc];
 }
 
@@ -99,7 +91,14 @@
 
 - (char *) cString 
 {
-    return Tcl_GetString(_tclObj);
+    /*
+     * Tcl_Obj value pointers are only safe
+     * until the next Tcl_Get*FromObj call.
+     */
+    if (_cString == NULL) {
+        _cString = strdup(Tcl_GetStringFromObj(_tclObj, NULL));
+    }
+    return _cString;
 }
 
 
