@@ -55,10 +55,6 @@ static NSString *DPNullResult = @"";
 
 // ui
 static NSString *DPUIPuts = @"ui_puts";
-static NSString *DPUIDebug = @"ui_debug";
-static NSString *DPUIConfirm = @"ui_confirm";
-static NSString *DPUIYesNo = @"ui_yesno";
-static NSString *DPUIDisplay = @"ui_display"; 
 
 
 @implementation DPAgent
@@ -84,9 +80,6 @@ static NSString *DPUIDisplay = @"ui_display";
         _interp = [[DPInterp alloc] init];
         [_interp loadPackage: DPPackageName version: DPPackageVersion usingCommand: DPPackageInit];
         [_interp redirectCommand: [DPObject objectWithString: DPUIPuts] toObject: self];
-        [_interp redirectCommand: [DPObject objectWithString: DPUIConfirm] toObject: self];
-        [_interp redirectCommand: [DPObject objectWithString: DPUIYesNo] toObject: self];
-        [_interp redirectCommand: [DPObject objectWithString: DPUIDisplay] toObject: self];
 
         // configure our d.o. connection
         _connection = [NSConnection defaultConnection];
@@ -302,74 +295,22 @@ static NSString *DPUIDisplay = @"ui_display";
 }
 
 
-
-- (DPObject *) _ui_return: (int)rc 
-{
-    NSString *string = nil;
-    switch (rc) 
-    {
-        case 1:
-            string = DPYesResult;
-            break;
-        case 0:
-            string = DPNoResult;
-            break;
-        default:
-            string = DPNullResult;
-            break;
-    }
-    return [DPObject objectWithString: string];
-}
-
-
 - (DPObject *) ui_puts: (NSArray *)array 
 {
-    NSString *priority= [[array objectAtIndex: 1] stringValue];
-    NSString *message = [[array objectAtIndex: 2] stringValue];
-    BOOL noNewLine = (([array count] > 3) && [[array objectAtIndex:3] containsString: @"-nonewline"]);    
+    NSDictionary *message = [[array objectAtIndex: 1] dictionaryValue];
+    if (message == nil)
+    	return [DPObject objectWithString: DPNoResult];
+
+    NSString *data = [message objectForKey: @"data"];
+    NSString *priority = [message objectForKey: @"priority"];
+    if (data == nil || priority == nil)
+    	return [DPObject objectWithString: DPNoResult];
+
     id delegate = [[[NSThread currentThread] threadDictionary] objectForKey: @"delegate"];
-    [delegate displayMessage: [NSString stringWithFormat: @"%@%@", message, (noNewLine ? @"" : @"\n")]
+    [delegate displayMessage: [NSString stringWithFormat: @"%@%@", data, @"\n"]
         withPriority: priority
         forPortName: [_currentOp objectForKey: @"portName"]];        
     return [DPObject objectWithString: DPYesResult];
-}
-
-
-- (DPObject *) ui_confirm: (NSArray *) array 
-{
-    // fixme - we need to forward this to our delegate 
-    // and let our delegate handle the UI display
-    NSString *method = [[array objectAtIndex: 0] stringValue];
-    NSString *message = [[array objectAtIndex: 1] stringValue];
-    int rc = NSRunAlertPanel(method, message, nil, nil, nil);
-    return [self _ui_return: rc];
-}
-
-
-- (DPObject *) ui_yesno:(NSArray *) array 
-{
-    // fixme - we need to forward this to our delegate 
-    // and let our delegate handle the UI display
-    NSString *method = [[array objectAtIndex: 0] stringValue];
-    NSString *message = [[array objectAtIndex: 1] stringValue];
-    int rc = NSRunAlertPanel(method, message, @"Yes", @"No", nil);
-    return [self _ui_return:rc];
-}
-
-
-- (DPObject *) ui_display:(NSArray *) array 
-{
-    // fixme - we need to forward this to our delegate 
-    // and let our delegate handle the UI display
-    NSString *arg1 = (NSString *)[array objectAtIndex:1];
-    NSString *contents = [NSString stringWithContentsOfFile:arg1];
-    if (nil != contents) {
-        NSLog(@"%@", contents);
-        return [DPObject objectWithString: DPYesResult];        
-    }
-    NSString *message = [NSString stringWithFormat: @"%@ %@", @"ui_display", @"stringWithContentsOfFile", arg1];
-    NSLog(@"%@", message);
-    return [DPObject objectWithString: DPNoResult];        
 }
 
 
