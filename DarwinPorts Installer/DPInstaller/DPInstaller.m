@@ -197,7 +197,7 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/DarwinPorts/
     currentOp++;
     
     NSURL *dportsURL = [NSURL URLWithString: DPDPortsBaseURL];
-    NSData *urlContents = [dportsURL resourceDataUsingCache: YES];
+    NSData *urlContents = [dportsURL resourceDataUsingCache: NO];
     NSString *outputFile;
     
     outputFile = [NSString stringWithFormat: @"%@/download.tar.gz", _workDirectory];
@@ -213,7 +213,7 @@ NSString *DPDPortsDportsURL = @"http://www.opendarwin.org/downloads/DarwinPorts/
 
     currentOp++;
     dportsURL = [NSURL URLWithString: DPDPortsDportsURL];
-    urlContents = [dportsURL resourceDataUsingCache: YES];
+    urlContents = [dportsURL resourceDataUsingCache: NO];
     NSString *dportsOutputFile = [NSString stringWithFormat: @"%@/download-dports.tar.gz", _workDirectory];
 
     if (![urlContents writeToFile: dportsOutputFile atomically: YES])
