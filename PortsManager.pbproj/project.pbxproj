@@ -253,7 +253,7 @@
 		};
 		056E016D047B7775001D1C5E = {
 			isa = PBXFileReference;
-			path = hexley.tiff;
+			path = background.tiff;
 			refType = 4;
 		};
 		056E016E047B7775001D1C5E = {
