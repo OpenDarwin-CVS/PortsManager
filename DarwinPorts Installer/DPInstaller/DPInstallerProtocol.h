@@ -32,7 +32,7 @@
 
 /* mach port names */
 #define DPInstallerMessagePort @"org.opendarwin.darwinports.installer.dpinstaller"
-#define DPAppMessagePort @"org.opendarwin.darwinports.install.dpapp"
+#define DPAppMessagePort @"org.opendarwin.darwinports.installer.dpapp"
 
 /* event priority names */
 #define DPPriorityWarn @"warn"

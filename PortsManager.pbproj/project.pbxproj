@@ -45,6 +45,24 @@
 			settings = {
 			};
 		};
+		051DEEFA049521F600A80005 = {
+			fileEncoding = 4;
+			isa = PBXFileReference;
+			path = DPDistributedNotifications.h;
+			refType = 4;
+		};
+		051DEEFB049521F600A80005 = {
+			fileRef = 051DEEFA049521F600A80005;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		051DEEFC049521F600A80005 = {
+			fileRef = 051DEEFA049521F600A80005;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		05507AB80457596700CA2DB2 = {
 			isa = PBXFileReference;
 			path = StatusItem_Reveal.tiff;
@@ -305,6 +323,7 @@
 				05D7BB45047991FC00A80002,
 				05D7BB47047991FC00A80002,
 				056E0171047B7C85001D1C5E,
+				051DEEFC049521F600A80005,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -556,6 +575,7 @@
 				056E0170047B7C85001D1C5E,
 				05D7BB32047991FB00A80002,
 				05D7BB33047991FB00A80002,
+				051DEEFA049521F600A80005,
 				05D7BB34047991FB00A80002,
 				05D7BB35047991FB00A80002,
 			);
@@ -1086,6 +1106,7 @@
 				05507ACE0457744C00CA2DB2,
 				05507AD304577B8300CA2DB2,
 				05507AD70457BCEC00CA2DB2,
+				051DEEFB049521F600A80005,
 			);
 			isa = PBXHeadersBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;

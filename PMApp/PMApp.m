@@ -35,9 +35,11 @@
 #import "PMBrowser.h"
 
 #import "DPAgentProtocol.h"
+#import "DPDistributedNotifications.h" /* DarwinPorts Installer notifications */
 
 NSString *DPPortMessageNotification = @"DPPortMessageNotification";
 NSString *DPPortProgressNotification = @"DPPortProgressNotification";
+NSString *DPPortRefreshNotification = @"DPPortRefreshNotification";
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -58,6 +60,15 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 		[NSMutableDictionary dictionaryWithContentsOfFile: 
 			[[NSBundle mainBundle] pathForResource: @"Defaults" ofType: @"plist"]]];
 
+    // configure and register D.O. connection
+    _connection = [NSConnection defaultConnection];
+    [_connection setRootObject: self];
+    [_connection enableMultipleThreads];
+    if ([_connection registerName: PMAppMessagePort] == NO)
+    {
+        NSRunAlertPanel(@"PortsManager", @"Couldn't register Ports Manager connection on this host.", nil, @"Quit", nil);
+        [NSApp terminate: self];
+    }
 }
 
 
@@ -80,16 +91,43 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 }
 
 
+// DarwinPorts Installation
+
 - (void) performInstallation
 {
-    if (NSRunAlertPanel(@"PortsManager", @"The DarwinPorts Infrastructure could not be located. Please install it and relaunch PortsManager.", @"Install", @"Quit", nil) != NSAlertDefaultReturn)
-        [NSApp terminate: self];
-    else {
-        NSString *installerPath = [[NSBundle mainBundle] pathForResource: @"DarwinPorts Installer" ofType: @"app"];
-        [[NSWorkspace sharedWorkspace] launchApplication: installerPath showIcon: NO autolaunch: NO];
-        [NSApp terminate: self];
-    }
+    NSString *installerPath = [[NSBundle mainBundle] pathForResource: @"DarwinPorts Installer" ofType: @"app"];
+    [[NSDistributedNotificationCenter defaultCenter] addObserver: self
+                                                        selector: @selector(installationDidFinish:)
+                                                            name: DPInstallerCompleteNotification
+                                                          object: nil];
+    [[NSDistributedNotificationCenter defaultCenter] addObserver: self
+                                                        selector: @selector(installationDidCancel:)
+                                                            name: DPInstallerCanceledNotification
+                                                          object: nil];
+    [[NSWorkspace sharedWorkspace] launchApplication: installerPath showIcon: NO autolaunch: NO];
 }
+    
+
+- (void) installationDidFinish: (NSNotification *) aNotification
+{
+    // Remove ourselves as an observer from ALL distributed notifications
+    [[NSDistributedNotificationCenter defaultCenter] removeObserver: self];
+    _agentBusy = NO;
+    [[self agent] agentInit];
+    [self resetPorts];
+}
+
+
+- (void) installationDidCancel: (NSNotification *) aNotification
+{
+    // Remove ourselves as an observer from ALL distributed notifications
+    [[NSDistributedNotificationCenter defaultCenter] removeObserver: self];
+    if (NSRunAlertPanel(@"PortsManager", @"DarwinPorts software must be installed to continue.", @"Install", @"Quit", nil) != NSAlertDefaultReturn)
+        [NSApp terminate: self];
+    else
+        [self performInstallation];
+}
+
 
 - (id <DPAgentProtocol>) agent
 {
@@ -105,17 +143,6 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
         return nil;
 
     _agentBusy = YES;
-    if (!_connection)
-    {
-        _connection = [NSConnection defaultConnection];
-        [_connection setRootObject: self];
-        [_connection enableMultipleThreads];
-        if ([_connection registerName: @"PMApp"] == NO)
-        {
-            NSLog(@"Couldn't register PMApp connection on this host.");
-            exit(0);
-        }
-    }
     
     if (!_agent)
     {
@@ -137,7 +164,7 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 
         for (i = 0; i<10; i++)
         {
-            _connection = [[NSConnection connectionWithRegisteredName: @"DPAgent" host: nil] retain];
+            _connection = [[NSConnection connectionWithRegisteredName: DPAgentMessagePort host: nil] retain];
             if (_connection)
             {
                 break;
@@ -154,7 +181,15 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
         agent = [[_connection rootProxy] retain];
         [(NSDistantObject *)agent setProtocolForProxy: @protocol(DPAgentProtocol)];
         [_connection setRootObject: self];
-        if (![agent agentInit])
+
+        [[NSNotificationCenter defaultCenter] addObserver: self
+            selector: @selector(connectionDidDie:)
+            name: NSConnectionDidDieNotification
+            object: _connection];
+        
+        _agent = agent;
+
+        if (![_agent agentInit])
         {
             /*
              * Performing this in the future allows us to display a dialog
@@ -166,12 +201,6 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
             [self performSelector: @selector(performInstallation) withObject: nil afterDelay: 0.0];
             return nil;
         }
-        [[NSNotificationCenter defaultCenter] addObserver: self
-            selector: @selector(connectionDidDie:)
-            name: NSConnectionDidDieNotification
-            object: _connection];
-        
-        _agent = agent;
     }
     _agentBusy = NO;
     return _agent;
@@ -187,13 +216,28 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 }
 
 
+- (void) resetPorts
+/*
+    Resets ports dictionary and categories.
+    We post DPPortRefreshNotification to let the various
+    windows displaying info from the dict refresh
+ */
+{
+    if (nil != _ports) [_ports release];
+    if (nil != _categories) [_categories release];
+    _ports = nil;
+    _categories = nil;
+    [[NSNotificationCenter defaultCenter] postNotificationName: DPPortRefreshNotification
+                                                        object: self
+                                                      userInfo: nil];
+}
+
+
 - (NSDictionary *) ports
 /*
     Return a dictionary of ports from the agent.   We only actually go out and fetch
     it the first time this method is called - after that we return a cached copy
-    for performance reasons.   We should add another method to force a refetch
-    when needed which will also need to post a notification to let the various
-    windows displaying info from the dict refresh    
+    for performance reasons.   
 */
 {
     if (!_ports)

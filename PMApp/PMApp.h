@@ -37,6 +37,7 @@
 
 extern NSString *DPPortMessageNotification;
 extern NSString *DPPortProgressNotification;
+extern NSString *DPPortRefreshNotification;
 
 @interface PMApp : NSObject <DPDelegateProtocol>
 {
@@ -59,6 +60,7 @@ extern NSString *DPPortProgressNotification;
 - (IBAction) newWindow: (id)sender;
 
 - (NSDictionary *) ports;
+- (void) resetPorts;
 - (NSDictionary *) portForName: (NSString *)name;
 - (NSArray *) categories;
 - (NSArray *) messages;

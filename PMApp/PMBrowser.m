@@ -65,7 +65,11 @@
         selector: @selector(portProgressNotification:)
         name: DPPortProgressNotification
         object: nil];
-
+    
+    [[NSNotificationCenter defaultCenter] addObserver: self
+                                             selector: @selector(portRefreshNotification:)
+                                                 name: DPPortRefreshNotification
+                                               object: nil];
     // display
     _searchString = @"";
     _sortedColumn = [[_outlineView tableColumnWithIdentifier: @"name"] retain];
@@ -274,7 +278,13 @@ static int reverseComparePortNamesByIdentifier(id portA, id portB, void *identif
 {
     [self reloadStatus];
 }
-    
+
+
+- (void) portRefreshNotification: (NSNotification *) aNotification
+{
+    [self reloadTableViews];
+}
+
 
 /** Ports outlineview methods **/
 
@@ -546,6 +556,12 @@ The "item" objects in the outline view are the unique names of the ports NOT the
     NSDictionary *port = [self selectedPort];
     [[PMConsole sharedConsole] showWindow: self];
     [_app executeTarget: DPFetchTarget forPortName: [port objectForKey: DPNameKey]];
+}
+
+
+- (IBAction) reload: (id)sender
+{
+    [(PMApp *)[NSApp delegate] resetPorts];
 }
 
 
