@@ -41,7 +41,7 @@
 
     NSConnection 			*_connection;
     
-    NSLock					*_interpLock;
+    NSLock					*_portExecLock;
     
     DPInterp 				*_interp;
     NSMutableDictionary 	*_ports;

@@ -59,9 +59,18 @@ static NSString *DPUIPuts = @"ui_puts";
 
 @implementation DPAgent
 /*
-    Serves as a bridge between the GUI app and the tcl interpreter.   Uses distributed objects to communicate with a delegte (GUI front-end).  All values exposed by the APIs to this class are generic objective-c data-types and not TCL DPObjects... clients talking to this class should not know or care that there's a tcl interpreter hiding underneath.   This class should also be the place to encapsulate all knowledge about the internal structure/constants of the ports system so that clients do not need to know about those details.
-    This class is multi-threaded but all port operations are currently serialized (see more comments on this below)\
-    The agent does not cache any information but rather always calls the tcl engine to talk to the ports collection and get the most recent information.   Caching should (and is) performed in the application front-end.    
+    Serves as a bridge between the GUI app and the tcl interpreter.
+    Uses distributed objects to communicate with a delegte (GUI front-end).
+    All values exposed by the APIs to this class are generic objective-c data-types
+    and not TCL DPObjects... clients talking to this class should not know or care that
+    there's a tcl interpreter hiding underneath.   This class should also be the place to
+    encapsulate all knowledge about the internal structure/constants of the ports system
+    so that clients do not need to know about those details.
+    This class is multi-threaded but all port operations are currently serialized
+    (see more comments on this below).
+    The agent does not cache any information but rather always calls the tcl
+    engine to talk to the ports collection and get the most recent information.
+    Caching should (and is) performed in the application front-end.
 */
 
 /** Init and clean-up **/
@@ -73,7 +82,7 @@ static NSString *DPUIPuts = @"ui_puts";
     if (self = [super init])
     {
 
-        _interpLock = [[NSLock alloc] init];
+        _portExecLock = [[NSLock alloc] init];
         _ports = [[NSMutableDictionary alloc] init];
 
         // configure our d.o. connection
@@ -101,13 +110,32 @@ static NSString *DPUIPuts = @"ui_puts";
 - (void) dealloc
 {
     [_interp release];
-    [_interpLock release];
+    [_portExecLock release];
     [super dealloc];
+}
+
+
+- (BOOL) interpInit: (DPInterp *) interp
+{
+    // load required Tcl packages and set up UI call back
+    if(![interp loadPackage: DPPackageName version: DPPackageVersion usingCommand: DPPackageInit])
+        return (NO);
+
+    if(![interp redirectCommand: DPUIPuts toObject: self])
+        return (NO);
+
+    return (YES);
 }
 
 
 /** D.O. connection management **/
 
+- (BOOL) agentInit
+{
+    // configure our tcl interpreter
+    _interp = [[DPInterp alloc] init];
+    return ([self interpInit: _interp]);
+}
 
 - (BOOL) connection: (NSConnection *)parentConnection shouldMakeNewConnection:(NSConnection *)newConnection
 {
@@ -138,19 +166,6 @@ static NSString *DPUIPuts = @"ui_puts";
 
 /** Port operations **/
 
-- (BOOL) agentInit
-{
-
-    // configure our tcl interpreter
-    _interp = [[DPInterp alloc] init];
-    if(![_interp loadPackage: DPPackageName version: DPPackageVersion usingCommand: DPPackageInit])
-        return (NO);
-    if(![_interp redirectCommand: [DPObject objectWithString: DPUIPuts] toObject: self])
-        return (NO);
-
-    return (YES);
-
-}
 
 - (bycopy NSData *) portsData
 /*
@@ -163,9 +178,7 @@ static NSString *DPUIPuts = @"ui_puts";
     DPObject *result;
     NSString *error;
     NSData *portsData;
-    
-    [_interpLock lock];    
-    
+        
     [_ports removeAllObjects];
     result = [_interp evaluateCommand: [DPObject objectWithString: DPSearchCommand] 
         withObject: [DPObject objectWithString: DPAnyPortArgument]];
@@ -226,7 +239,6 @@ static NSString *DPUIPuts = @"ui_puts";
         }
         [_ports setObject: portDict forKey: [portDict objectForKey: DPNameKey]];
     }
-    [_interpLock unlock];    
 
     // we serialize the data before returning it so that we can pass a deep copy of
     // the entire dictionary back in a single D.O. exchange.   if we just pass
@@ -241,16 +253,15 @@ static NSString *DPUIPuts = @"ui_puts";
     
 }
 
-
-- (oneway void) executeTarget: (NSString *)target forPortName: (NSString *)portName
+- (oneway void) executeTarget: (in bycopy NSString *)target forPortName: (in bycopy NSString *)portName
 /*
     Detaches a new thread to perform the specified target on the specified port... 
 */
 {
     NSDictionary *op = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
         portName, @"portName",
-        [DPObject objectWithString: target], @"target",
-        [DPObject objectWithString: [[_ports objectForKey: portName] objectForKey: DPPortURLKey]], @"url",
+        target, @"target",
+        [[_ports objectForKey: portName] objectForKey: DPPortURLKey], @"url",
         nil];
     [NSThread detachNewThreadSelector: sel_getUid("_threadForOperation:") 
         toTarget: self 
@@ -261,17 +272,22 @@ static NSString *DPUIPuts = @"ui_puts";
 /** Execution thread methods */
 
 /*
-    Everything beyond this point code executes in secondary threads.  I've made a conscious effort to not share any objects (except for the _interpLock) between the primary thread and the secondary threads to minimize the need to worry about thread-safe data sharing between threads.
-    Even though we have a separate thread for each operation all operations are currently serialized using the _interpLock.   If we wish to allow multiple simultaneous operations in the future then each thread will have to instantiate it's own interpreter (and the gui will also have to be made more flexible to sort out messages coming back from multiple simultaneous operations).   
-    If we allow multiple truly simultaneous operations we also need to think about situations such as what happens if you start installing Port A and Port B both of which have a dependency on C?  Does C get installed twice?  Or even worse what if you start installing port A which depends on port C and simultaneously start uninstalling C?  etc.   For now easier to sidestep the whole issue by serializing everything.
+    Everything beyond this point code executes in secondary threads.  I've made a conscious effort to not share any objects (except for the _portExecLock) between the primary thread and the secondary threads to minimize the need to worry about thread-safe data sharing between threads.
+    Even though we have a separate thread for each operation all operations are currently serialized using the _portExecLock.
+    If we allow multiple simultaneous operations we also need to think about situations such as what happens if you start installing Port A and Port B both of which have a dependency on C?  Does C get installed twice?  Or even worse what if you start installing port A which depends on port C and simultaneously start uninstalling C?  etc.   For now easier to sidestep the whole issue by serializing everything.
 */
 
 
 - (void) _threadForOperation: (NSMutableDictionary *)op
 {
 
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];    
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    DPInterp *interp = [[DPInterp alloc] init];
 
+    /* Initialize new interpreter */
+    if (![self interpInit: interp])
+        return;
+    
     // establish a separate connection for communication from this thread
     // back to the PortsManager.app
     NSConnection *connection = [NSConnection connectionWithRegisteredName: PMAppMessagePort host: nil];
@@ -282,28 +298,29 @@ static NSString *DPUIPuts = @"ui_puts";
         selector: @selector(connectionDidDie:)
         name: NSConnectionDidDieNotification
         object: connection];
+    
     [[[NSThread currentThread] threadDictionary] setObject: delegate forKey: @"delegate"];
     
-    if ([delegate shouldPerformTarget: [[op objectForKey: @"target"] stringValue] forPortName: [op objectForKey: @"portName"]])
+    if ([delegate shouldPerformTarget: [op objectForKey: @"target"] forPortName: [op objectForKey: @"portName"]])
     {
         DPObject *result = nil;
-        [delegate willPerformTarget: [[op objectForKey: @"target"] stringValue] forPortName: [op objectForKey: @"portName"]];
-        [_interpLock lock]; // this can block for a long time if another op is in progress
+        [_portExecLock lock]; // this can block for a long time if another op is in progress
+        [delegate willPerformTarget: [op objectForKey: @"target"] forPortName: [op objectForKey: @"portName"]];
         _currentOp = op;
-        DPObject *workName = [_interp evaluateCommand: [DPObject objectWithString: DPOpenCommand] 
-            withObject: [op objectForKey: @"url"]];
-        if ([_interp succeeded])
+        DPObject *workName = [interp evaluateCommand: [DPObject objectWithString: DPOpenCommand]
+                                          withObject: [DPObject objectWithString: [op objectForKey: @"url"]]];
+        if ([interp succeeded])
         {
-            result = [_interp evaluateCommand: [DPObject objectWithString: DPExecCommand] 
-                withObjects: workName : [op objectForKey: @"target"]];
-            if ([_interp succeeded]) 
+            result = [interp evaluateCommand: [DPObject objectWithString: DPExecCommand]
+                                 withObjects: workName : [DPObject objectWithString: [op objectForKey: @"target"]]];
+            if ([interp succeeded]) 
             {
-                result = [_interp evaluateCommand: [DPObject objectWithString: DPCloseCommand] withObject: workName];            
-            } 
+                result = [interp evaluateCommand: [DPObject objectWithString: DPCloseCommand] withObject: workName];            
+            }
         }
         _currentOp = nil;
-        [_interpLock unlock];
-        [delegate didPerformTarget: [[op objectForKey: @"target"] stringValue] forPortName: [op objectForKey: @"portName"] withResult: [result stringValue]];
+        [_portExecLock unlock];
+        [delegate didPerformTarget: [op objectForKey: @"target"] forPortName: [op objectForKey: @"portName"] withResult: [result stringValue]];
     }
 
     // Unregister for NSConnectionDidDieNotification before
@@ -314,7 +331,8 @@ static NSString *DPUIPuts = @"ui_puts";
 
     [op release];
     [pool release];
-
+    /* Do NOT release interpreter until ALL DPObjects are released */
+    [interp release];
 }
 
 

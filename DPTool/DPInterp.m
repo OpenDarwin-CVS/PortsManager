@@ -47,14 +47,14 @@
 
 /** Redirect Handler */
 
-SEL makeSelector(NSString *name) {
+static SEL makeSelector(NSString *name) {
     NSString *methodName = [name stringByAppendingString:@":"];
     return sel_getUid([methodName cString]);
 }
 
 
 //Tcl_CreateObjCommand(_interp, [command cString], DPCommandHandler, handler, NULL);
-int DPCommandHandler(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Obj *CONST objv[]) 
+static int DPCommandHandler(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Obj *CONST objv[]) 
 {
     id handler = (id) clientData;
     NSMutableArray *array = [NSMutableArray array];
@@ -91,7 +91,7 @@ int DPCommandHandler(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Ob
 - (void) dealloc 
 {
     Tcl_DeleteInterp(_interp);
-    [super release];
+    [super dealloc];
 }
 
 
@@ -189,9 +189,9 @@ int DPCommandHandler(ClientData clientData, Tcl_Interp *interp, int argc, Tcl_Ob
 /** Notifications */
 
 
-- (BOOL) redirectCommand: (DPObject *)command toObject: (id)handler
+- (BOOL) redirectCommand: (NSString *) command toObject: (id)handler
 {
-    SEL selector = makeSelector([command stringValue]);
+    SEL selector = makeSelector(command);
     if (NULL == selector || ![handler respondsToSelector:selector])
         return NO;
     

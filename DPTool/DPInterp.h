@@ -56,6 +56,6 @@
 
 - (BOOL) succeeded;
 
-- (BOOL) redirectCommand: (DPObject *) command toObject: (id)handler;
+- (BOOL) redirectCommand: (NSString *) command toObject: (id)handler;
 
 @end
