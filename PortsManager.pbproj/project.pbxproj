@@ -1352,7 +1352,7 @@
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			name = DPAgent.m;
-			path = dptool/DPAgent.m;
+			path = DPTool/DPAgent.m;
 			refType = 2;
 		};
 		F5537E9603E9EB6301000113 = {
@@ -1510,7 +1510,7 @@
 			fileEncoding = 30;
 			isa = PBXFileReference;
 			name = DPAgent.h;
-			path = ../dptool/DPAgent.h;
+			path = ../DPTool/DPAgent.h;
 			refType = 4;
 		};
 		F5AC4C9603E215FB0100010E = {
