@@ -289,7 +289,13 @@ static NSString *DPUIDisplay = @"ui_display";
         [_interpLock unlock];
         [delegate didPerformTarget: [[op objectForKey: @"target"] stringValue] forPortName: [op objectForKey: @"portName"] withResult: [result stringValue]];
     }
-    
+
+    // Unregister for NSConnectionDidDieNotification before
+    // auto-releasing the connection object
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+        name: NSConnectionDidDieNotification
+        object: connection];
+
     [op release];
     [pool release];
 
