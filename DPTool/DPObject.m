@@ -84,7 +84,6 @@
 {
     Tcl_DecrRefCount(_tclObj);
     [_cocoaString release];
-    [_cocoaDictionary release];
     [super dealloc];
 }
 
@@ -111,6 +110,33 @@
         _cocoaString = [[NSString alloc] initWithCString: [self cString]];
     }
     return _cocoaString;
+}
+
+- (NSDictionary*) dictionaryValue 
+{
+    Tcl_Obj **elemPtrs;
+    int elemLen, i;
+
+    if (nil == _cocoaDictionary)
+    {
+    	if (Tcl_ListObjGetElements(NULL, _tclObj, &elemLen, &elemPtrs) != TCL_OK)
+	    return nil;
+
+	if (elemLen & 1 || elemLen == 0)
+	    return nil;
+
+	NSMutableArray *keys = [NSMutableArray array];
+	NSMutableArray *values = [NSMutableArray array];
+
+	for (i = 0; i < elemLen; i += 2) {
+	    [keys addObject: [NSString stringWithCString: Tcl_GetString(elemPtrs[i])]];
+	    [values addObject: [NSString stringWithCString: Tcl_GetString(elemPtrs[i + 1])]];
+	}
+
+	_cocoaDictionary = [NSDictionary dictionaryWithObjects: values forKeys: keys];
+    }
+
+    return _cocoaDictionary;
 }
 
 

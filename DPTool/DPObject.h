@@ -51,6 +51,7 @@
 - (Tcl_Obj *) tclObj;
 - (char *) cString;
 - (NSString *) stringValue;
+- (NSDictionary *) dictionaryValue;
 
 /** comparisons **/
 - (BOOL) isEqual: (id)object;
