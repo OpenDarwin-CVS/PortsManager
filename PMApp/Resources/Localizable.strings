@@ -1,0 +1,7 @@
+description = "Description";
+long_description = "Details";
+version = "Version";
+maintainers = "Maintainers";
+categories = "Categories";
+portdir = "Directory";
+porturl = "URL";

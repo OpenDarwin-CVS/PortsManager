@@ -1,0 +1,82 @@
+{
+
+	DPToolbarIdentifier = {
+        defaultItemIdentifiers = (
+            DPInstallItem, 
+            DPConsoleItem,
+            DPReloadItem,
+            DPSearchItem,
+        );
+        allowedItemIdentifiers = (
+            DPBuildItem, 
+            DPChecksumItem, 
+            DPCleanItem,
+            DPFetchItem, 
+            DPInstallItem, 
+            DPPackageItem,
+            DPSearchItem,
+            NSToolbarFlexibleSpaceItem, 
+            NSToolbarSpaceItem,
+            NSToolbarSeparatorItem,
+            NSToolbarPrintItem, 
+            NSToolbarShowFontsItem,
+            NSToolbarCustomizeToolbarItem,
+        );
+        itemInfoByIdentifier = {
+            DPBuildItem = {
+                label = "Build";
+                toolTip = "Build port";
+                action = "build:"; 
+                imageName = "Build"; 
+            };
+			DPChecksumItem = {
+				label = "Checksum";
+				toolTip = "Checksum port";
+				action = "checksum:";
+				imageName = "Checksum";
+			};
+            DPCleanItem = {
+                label = "Clean";
+                toolTip = "Clean port";
+                action = "clean:";
+                imageName = "Clean";
+            };
+			DPFetchItem = {
+				label = "Fetch";
+				toolTip = "Fetch port";
+				action = "fetch:";
+                imageName = "Fetch";
+			};
+			DPInstallItem = {
+				label = "Install";
+				toolTip = "Install port";
+                action = "install:";
+				imageName = "Install";
+			};
+			DPPackageItem = {
+				label = "Package";
+				toolTip = "Package port";
+				action = "package:";
+				imageName = "Package";
+			};
+			DPConsoleItem = {
+				label = "Console";
+				toolTip = "Show Console";
+				action = "showConsole:";
+				imageName = "Console";
+			};
+			DPReloadItem = {
+				label = "Reload";
+				toolTip = "Reload ports";
+				action = "reload:";
+				imageName = "Reload";
+			};
+			DPSearchItem = {
+				label = "Search";
+				toolTip = "Search";
+                view = "searchView";
+			};
+        };
+	};
+	
+}

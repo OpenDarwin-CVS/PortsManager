@@ -1,0 +1,145 @@
+//
+//  DPObject.m
+//  DarwinPorts
+//
+/*
+ Copyright (c) 2003 Apple Computer, Inc.
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#import "DPObject.h"
+
+
+@implementation DPObject
+/*
+    Thin obj-c wrapper for TclObj.  Should not have any specific knowledge of darwinports data-types/structures
+*/
+
+
+/** Creation **/
+
+
++ (DPObject *) objectWithString: (NSString *)string
+{
+    static NSMutableDictionary *cachedObjects;
+    DPObject *object = nil;
+    if (!cachedObjects)
+    {
+        cachedObjects = [[NSMutableDictionary alloc] init];
+    }
+    object = [cachedObjects objectForKey: string];
+    if (!object)
+    {
+        const char *cString = [string cString];
+        Tcl_Obj *tclObj = Tcl_NewStringObj(cString, strlen(cString));
+        object = [[[self alloc] initWithTclObj: tclObj] autorelease];
+        [cachedObjects setObject: object forKey: string];
+    }
+    return object;
+}
+
+
++ (DPObject *) objectWithTclObj: (Tcl_Obj *)tclObj
+{
+    return [[[self alloc] initWithTclObj: tclObj] autorelease];
+}
+
+
+- (id) initWithTclObj: (Tcl_Obj *)tclObj
+{
+    if (self = [super init])
+    {
+        _tclObj = tclObj;
+        Tcl_IncrRefCount(_tclObj);
+    }
+    return self;
+}
+
+
+- (void) dealloc 
+{
+    Tcl_DecrRefCount(_tclObj);
+    [_cocoaString release];
+    [_cocoaDictionary release];
+    [super dealloc];
+}
+
+
+/** Accessors */
+
+
+- (Tcl_Obj *) tclObj
+{
+    return _tclObj;
+}
+
+
+- (char *) cString 
+{
+    return Tcl_GetString(_tclObj);
+}
+
+
+- (NSString*) stringValue 
+{
+    if (nil == _cocoaString)
+    {
+        _cocoaString = [[NSString alloc] initWithCString: [self cString]];
+    }
+    return _cocoaString;
+}
+
+
+- (NSString*) description 
+{
+    return [self stringValue];
+}
+
+
+
+/** Comparisons */
+
+
+- (unsigned) hash 
+{
+    return [[self stringValue] hash];
+}
+
+
+- (BOOL) isEqual: (id)object 
+{
+    return [[self stringValue] isEqualToString: [object stringValue]];
+}
+
+
+- (BOOL) containsString: (NSString *)substring 
+{
+    return ([[self stringValue] rangeOfString: substring].location != NSNotFound);
+}
+
+
+@end

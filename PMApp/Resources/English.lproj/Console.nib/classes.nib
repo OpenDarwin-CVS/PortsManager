@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {changeDetailLevel = id; }; 
+            CLASS = PMConsole; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_detailLevelPopUpButton" = NSPopUpButton; "_textView" = NSTextView; }; 
+            SUPERCLASS = NSWindowController; 
+        }
+    ); 
+    IBVersion = 1; 
+}

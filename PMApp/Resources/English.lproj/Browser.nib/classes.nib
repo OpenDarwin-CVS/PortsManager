@@ -1,0 +1,76 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {
+                executeItem = id; 
+                printDocument = id; 
+                reloadPorts = id; 
+                takePatternFrom = id; 
+                toggleConsole = id; 
+            }; 
+            CLASS = DPController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                consoleDrawer = NSDrawer; 
+                consoleText = NSTextView; 
+                descriptionText = NSTextView; 
+                ports = DPPorts; 
+                preferencesPanel = NSPanel; 
+                prefs = DPPrefs; 
+                toolbarDelegate = DPToolbarDelegate; 
+                urlField = NSTextField; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {print = id; }; 
+            CLASS = DPPorts; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {countField = NSTextField; outlineView = NSOutlineView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {applyPrefs = id; cancelPrefs = id; revertPrefs = id; showPrefs = id; }; 
+            CLASS = DPPrefs; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                debug = id; 
+                prefWindow = id; 
+                quiet = id; 
+                sources = id; 
+                variants = id; 
+                verbose = id; 
+            }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = DPToolbarDelegate; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {searchFieldOutlet = NSTextField; window = NSWindow; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {clearSearchField = id; search = id; }; 
+            CLASS = PMBrowser; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                "_outlineView" = NSOutlineView; 
+                "_progressIndicator" = NSProgressIndicator; 
+                "_searchTextField" = NSTextField; 
+                "_searchView" = NSView; 
+                "_statusTextField" = NSTextField; 
+                "_tableView" = NSTableView; 
+                "_textView" = NSTextView; 
+            }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {
+            CLASS = SMMonitoredView; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_highWaterReading" = NSTextField; }; 
+            SUPERCLASS = NSView; 
+        }
+    ); 
+    IBVersion = 1; 
+}
