@@ -5,6 +5,46 @@
 	};
 	objectVersion = 38;
 	objects = {
+		0500C173048D923D00CA2DAA = {
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/Credits.rtf;
+			refType = 4;
+		};
+		0500C175048D924600CA2DAA = {
+			children = (
+				0500C173048D923D00CA2DAA,
+			);
+			isa = PBXVariantGroup;
+			name = Credits.rtf;
+			refType = 4;
+		};
+		0500C176048D924600CA2DAA = {
+			fileRef = 0500C175048D924600CA2DAA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		0500C177048D978700CA2DAA = {
+			isa = PBXFileReference;
+			name = English;
+			path = English.lproj/Credits.rtf;
+			refType = 4;
+		};
+		0500C179048D978C00CA2DAA = {
+			children = (
+				0500C177048D978700CA2DAA,
+			);
+			isa = PBXVariantGroup;
+			name = Credits.rtf;
+			refType = 4;
+		};
+		0500C17A048D978C00CA2DAA = {
+			fileRef = 0500C179048D978C00CA2DAA;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		05507AB80457596700CA2DB2 = {
 			isa = PBXFileReference;
 			path = StatusItem_Reveal.tiff;
@@ -61,7 +101,7 @@
 		05507AC30457724200CA2DB2 = {
 			isa = PBXFileReference;
 			name = StatusItemView.nib;
-			path = Resources/English.lproj/StatusItemView.nib;
+			path = English.lproj/StatusItemView.nib;
 			refType = 4;
 		};
 		05507AC40457724200CA2DB2 = {
@@ -76,7 +116,7 @@
 		05507AC50457724200CA2DB2 = {
 			isa = PBXFileReference;
 			name = StatusView.nib;
-			path = Resources/English.lproj/StatusView.nib;
+			path = English.lproj/StatusView.nib;
 			refType = 4;
 		};
 		05507AC60457724200CA2DB2 = {
@@ -175,7 +215,7 @@
 		0567C4D2047C91FF00F9CC84 = {
 			fileEncoding = 10;
 			isa = PBXFileReference;
-			name = English;
+			name = InfoPlist.strings;
 			path = English.lproj/InfoPlist.strings;
 			refType = 4;
 		};
@@ -279,6 +319,7 @@
 				056E016E047B7775001D1C5E,
 				056E0176047B7D98001D1C5E,
 				056E0178047B8BE0001D1C5E,
+				0500C17A048D978C00CA2DAA,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -556,6 +597,7 @@
 			children = (
 				056E015E047B264B001D1C5E,
 				05D7BB36047991FB00A80002,
+				0500C179048D978C00CA2DAA,
 				05D7BB38047991FC00A80002,
 				05D7BB3A047991FC00A80002,
 				056E0175047B7D98001D1C5E,
@@ -782,8 +824,7 @@
 		};
 		1788172703CA47BE00CB2C3D = {
 			isa = PBXFileReference;
-			name = PortsManager.icns;
-			path = Resources/PortsManager.icns;
+			path = PortsManager.icns;
 			refType = 4;
 		};
 		1788172803CA47BE00CB2C3D = {
@@ -951,6 +992,7 @@
 				F55BD9B003E1F3CE0100010E,
 				05507AC20457724200CA2DB2,
 				05507AC40457724200CA2DB2,
+				0500C175048D924600CA2DAA,
 				474CF6AB03CA876A00A80166,
 				1788172703CA47BE00CB2C3D,
 				F55BD9C303E20A8B0100010E,
@@ -960,8 +1002,7 @@
 				F537476203EECFD001A80001,
 			);
 			isa = PBXGroup;
-			name = Resources;
-			path = "";
+			path = Resources;
 			refType = 4;
 		};
 		29B97323FDCFA39411CA2CEA = {
@@ -1076,6 +1117,7 @@
 				05507AC70457724200CA2DB2,
 				05D7BBAA047995D700A80002,
 				0567C4D3047C91FF00F9CC84,
+				0500C176048D924600CA2DAA,
 			);
 			isa = PBXResourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1137,8 +1179,7 @@
 				1788172F03CA47BE00CB2C3D,
 			);
 			isa = PBXGroup;
-			name = Images;
-			path = Resources;
+			path = Images;
 			refType = 4;
 		};
 //470
@@ -1401,8 +1442,8 @@
 		};
 		F55BD9B103E1F3CE0100010E = {
 			isa = PBXFileReference;
-			name = English;
-			path = Resources/English.lproj/MainMenu.nib;
+			name = MainMenu.nib;
+			path = English.lproj/MainMenu.nib;
 			refType = 4;
 		};
 		F55BD9B203E1F3CE0100010E = {
@@ -1422,8 +1463,8 @@
 		};
 		F55BD9B703E1F9ED0100010E = {
 			isa = PBXFileReference;
-			name = English;
-			path = Resources/English.lproj/Browser.nib;
+			name = Browser.nib;
+			path = English.lproj/Browser.nib;
 			refType = 4;
 		};
 		F55BD9B803E1F9ED0100010E = {
@@ -1472,8 +1513,7 @@
 		F55BD9C303E20A8B0100010E = {
 			fileEncoding = 30;
 			isa = PBXFileReference;
-			name = Defaults.plist;
-			path = Resources/Defaults.plist;
+			path = Defaults.plist;
 			refType = 4;
 		};
 		F55BD9C403E20A8B0100010E = {
@@ -1549,7 +1589,7 @@
 		F5EEC0FE03F83EF401A80001 = {
 			isa = PBXFileReference;
 			name = Console.nib;
-			path = Resources/English.lproj/Console.nib;
+			path = English.lproj/Console.nib;
 			refType = 4;
 		};
 		F5EEC0FF03F83EF401A80001 = {
@@ -1585,8 +1625,7 @@
 		F5FE13B903EB1AF501A80001 = {
 			fileEncoding = 10;
 			isa = PBXFileReference;
-			name = Localizable.strings;
-			path = Resources/Localizable.strings;
+			path = Localizable.strings;
 			refType = 4;
 		};
 		F5FE13BA03EB1AF501A80001 = {
