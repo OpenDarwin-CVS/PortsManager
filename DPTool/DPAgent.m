@@ -322,9 +322,7 @@ static NSString *DPUIPuts = @"ui_puts";
     	return [DPObject objectWithString: DPNoResult];
 
     id delegate = [[[NSThread currentThread] threadDictionary] objectForKey: @"delegate"];
-    [delegate displayMessage: [NSString stringWithFormat: @"%@%@", data, @"\n"]
-        withPriority: priority
-        forPortName: [_currentOp objectForKey: @"portName"]];        
+    [delegate displayMessage: message forPortName: [_currentOp objectForKey: @"portName"]];
     return [DPObject objectWithString: DPYesResult];
 }
 

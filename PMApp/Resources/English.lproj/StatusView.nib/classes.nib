@@ -1,0 +1,14 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {updateMirrorsNow = id; }; 
+            CLASS = PMStatusController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_statusTextField" = NSTextField; "_statusView" = PMStatusView; }; 
+            SUPERCLASS = NSWindowController; 
+        }, 
+        {CLASS = PMStatusView; LANGUAGE = ObjC; SUPERCLASS = NSView; }
+    ); 
+    IBVersion = 1; 
+}

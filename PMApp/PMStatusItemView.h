@@ -1,6 +1,6 @@
 //
-//  DPAgent.h
-//  DarwinPorts
+//  PMStatusItemView.h
+//  PortsManager
 //
 /*
  Copyright (c) 2003 Apple Computer, Inc.
@@ -31,41 +31,26 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-// port keys 
-#define DPNameKey @"name"
-#define DPVersionKey @"version"
-#define DPPortURLKey @"porturl"
-#define DPCategoriesKey @"categories"
-#define DPDependsKey @"depends_"
-#define DPMaintainersKey @"maintainers"
-#define DPPlatformsKey @"platforms"
-#define DPPortDirKey @"portdir"
-#define DPDescriptionKey @"description"
-#define DPLongDescriptionKey @"long_description"
+#import <Cocoa/Cocoa.h>
 
-// targets 
-#define DPBuildTarget @"build"
-#define DPCleanTarget @"clean"
-#define DPChecksumTarget @"checksum"
-#define DPFetchTarget @"fetch"
-#define DPInstallTarget @"install"
-#define DPPackageTarget @"package"
 
-@protocol DPAgentProtocol
+@interface PMStatusItemView : NSView 
+{
+    IBOutlet NSImageView *_itemImageView;
+    IBOutlet NSTextField *_itemNameTextField;
+    IBOutlet NSProgressIndicator *_itemProgressIndicator;
+    IBOutlet NSTextField *_itemStatusTextField;
+    IBOutlet NSButton *_itemButton;
+    BOOL progressIndicatorHidden;
+}
 
-- (bycopy NSData *) portsData;
-- (oneway void) executeTarget: (in bycopy NSString *)target forPortName: (in bycopy NSString *)portName;
-- (oneway void) terminate;
+- (void) setName: (NSString *)name;
+- (void) setStatus: (NSString *)name;
+- (void) showProgressIndicator;
+- (void) hideProgressIndicator;
+- (void) setProgressIndeterminate: (BOOL)flag;
+- (void) setProgress: (float)progress;
+- (void) setAction: (SEL)selector;
+- (void) setTarget: (id)target;
 
 @end
-
-
-@protocol DPDelegateProtocol
-
-- (oneway void) displayMessage: (in bycopy NSDictionary *)message forPortName: (in bycopy NSString *)portName;
-- (BOOL) shouldPerformTarget: (in bycopy NSString *)target forPortName: (in bycopy NSString *)portName;
-- (oneway void) willPerformTarget: (in bycopy NSString *)target forPortName: (in bycopy NSString *)portName;
-- (oneway void) didPerformTarget: (in bycopy NSString *)target forPortName: (in bycopy NSString *)portName withResult: (in bycopy NSString *)result;
-
-@end
-

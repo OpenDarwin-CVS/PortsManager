@@ -1,5 +1,5 @@
 //
-//  PMApp.h
+//  PMStatusItemView.m
 //  PortsManager
 //
 /*
@@ -31,38 +31,84 @@
  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Cocoa/Cocoa.h>
-#import "DPAgent.h"
-#import "PMStatusController.h"
 
-extern NSString *DPPortMessageNotification;
-extern NSString *DPPortProgressNotification;
+#import "PMStatusItemView.h"
 
-@interface PMApp : NSObject <DPDelegateProtocol>
+
+@implementation PMStatusItemView
+
+- (BOOL) isOpaque
 {
-
-    NSConnection *_connection;
-    id <DPAgentProtocol> _agent;
-
-    NSDictionary *_ports;
-    NSMutableArray *_categories;
-    NSMutableArray *_messages;
-    NSMutableDictionary *_currentOperation;
-    NSMutableArray *_operations;
-
-    IBOutlet PMStatusController *_statusController;
-    
+    return NO;
 }
 
-- (id <DPAgentProtocol>) agent;
-- (IBAction) newWindow: (id)sender;
 
-- (NSDictionary *) ports;
-- (NSDictionary *) portForName: (NSString *)name;
-- (NSArray *) categories;
-- (NSArray *) messages;
-- (NSArray *) operations;
-- (NSDictionary *) currentOperation;
-- (void) executeTarget: (NSString *)target forPortName: (NSString *)portName;
+- (void) setName: (NSString *)name
+{
+    [_itemNameTextField setStringValue: name];
+}
+
+
+- (void) setStatus: (NSString *)name 
+{
+    [_itemStatusTextField setStringValue: name];
+}
+
+
+- (void) showProgressIndicator
+{
+    if (progressIndicatorHidden)
+    {
+        NSRect frame =[_itemNameTextField frame];
+        frame.origin.y += 10;
+        [_itemNameTextField setFrame: frame];
+        frame =[_itemStatusTextField frame];
+        frame.origin.y -= 10;
+        [_itemStatusTextField setFrame: frame];
+        [_itemProgressIndicator startAnimation: self]; 
+        progressIndicatorHidden = YES;
+    }
+}
+
+
+- (void) hideProgressIndicator
+{
+    if (!progressIndicatorHidden)
+    {
+        NSRect frame =[_itemNameTextField frame];
+        frame.origin.y -= 10;
+        [_itemNameTextField setFrame: frame];
+        frame =[_itemStatusTextField frame];
+        frame.origin.y += 10;
+        [_itemStatusTextField setFrame: frame];
+        [_itemProgressIndicator stopAnimation: self]; 
+        progressIndicatorHidden = YES;
+    }
+}
+
+
+- (void) setProgressIndeterminate: (BOOL)flag
+{
+    [_itemProgressIndicator setIndeterminate: flag];
+    [_itemProgressIndicator startAnimation: self]; 
+}
+
+- (void) setProgress: (float)progress
+{
+    [_itemProgressIndicator setDoubleValue: progress];
+}
+
+
+- (void) setAction: (SEL)selector
+{
+    [_itemButton setAction: selector];
+}
+
+
+- (void) setTarget: (id)target
+{
+    [_itemButton setTarget: target];
+}
+
 
 @end

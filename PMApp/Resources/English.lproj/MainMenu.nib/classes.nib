@@ -54,7 +54,15 @@
             ACTIONS = {newWindow = id; }; 
             CLASS = PMApp; 
             LANGUAGE = ObjC; 
+            OUTLETS = {"_statusController" = PMStatusController; }; 
             SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {updateMirrorsNow = id; }; 
+            CLASS = PMStatusController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {"_statusTextField" = NSTextField; "_statusView" = PMStatusView; }; 
+            SUPERCLASS = NSWindowController; 
         }
     ); 
     IBVersion = 1; 

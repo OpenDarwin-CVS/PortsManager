@@ -96,10 +96,10 @@
         {
             [textStorage appendAttributedString: 
                 [[[NSMutableAttributedString alloc] initWithString:
-                    [NSString stringWithFormat: @"%@:%@:%@", 
-                        [entry objectForKey: @"portName"],
+                    [NSString stringWithFormat: @"%@:%@:%@\n", 
+                        [entry objectForKey: @"context"],
                         [entry objectForKey: @"priority"], 
-                        [entry objectForKey: @"message"]]] autorelease]];
+                        [entry objectForKey: @"data"]]] autorelease]];
         }
     }
 }
@@ -113,10 +113,10 @@
     {
         [textStorage appendAttributedString: 
             [[[NSMutableAttributedString alloc] initWithString:
-                [NSString stringWithFormat: @"%@:%@:%@", 
-                    [entry objectForKey: @"portName"],
+                [NSString stringWithFormat: @"%@:%@:%@\n", 
+                    [entry objectForKey: @"context"],
                     [entry objectForKey: @"priority"], 
-                    [entry objectForKey: @"message"]]] autorelease]];
+                    [entry objectForKey: @"data"]]] autorelease]];
     }
 }
 

@@ -248,22 +248,16 @@ NSString *DPPortProgressNotification = @"DPPortProgressNotification";
 }
 
 
-- (oneway void) displayMessage: (in bycopy NSString *)message withPriority: (in bycopy NSString *)priority forPortName: (in bycopy NSString *)portName
+- (oneway void) displayMessage: (in bycopy NSDictionary *)message forPortName: (in bycopy NSString *)portName;
 {
-    NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
-        priority, @"priority",
-        message, @"message",
-        portName, @"portName",
-        [NSDate date], @"date",
-        nil];
     if (!_messages)
     {
         _messages = [[NSMutableArray alloc] init];
     }
-    [_messages addObject: userInfo];
-    [[NSNotificationCenter defaultCenter] postNotificationName: DPPortMessageNotification 
+    [_messages addObject: message];
+    [[NSNotificationCenter defaultCenter] postNotificationName: DPPortMessageNotification
         object: [self portForName: portName]
-        userInfo: userInfo];
+        userInfo: message];
 //    NSLog(@"%@:%@ %@", portName, priority, message);
 }
 
