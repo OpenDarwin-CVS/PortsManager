@@ -139,7 +139,7 @@ enum {
             
         case DPWindowCompleteState:
             _installBusy = NO;
-            [_continueButton setTitle: @"Quit"];
+            [_continueButton setTitle: @"Finish"];
             [_continueButton setEnabled: YES];
             [_continueButton setTarget: NSApp];
             [_continueButton setAction: NSSelectorFromString(@"terminate:")];
