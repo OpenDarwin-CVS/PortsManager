@@ -41,7 +41,7 @@
 
 @implementation DPInterp
 /*
-    A thin objective-c wrapper for the tcl interperter - the intent is that this should be a generic TCL interpretter and should not have any specific knowledge of the ports system.
+    A thin objective-c wrapper for the tcl interpreter - the intent is that this should be a generic TCL interpreter and should not have any specific knowledge of the ports system.
 */
 
 

@@ -63,7 +63,7 @@ static NSString *DPUIDisplay = @"ui_display";
 
 @implementation DPAgent
 /*
-    Serves as a bridge between the GUI app and the tcl interpretter.   Uses distributed objects to communicate with a delegte (GUI front-end).  All values exposed by the APIs to this class are generic objective-c data-types and not TCL DPObjects... clients talking to this class should not know or care that there's a tcl interpretter hiding underneath.   This class should also be the place to encapsulate all knowledge about the internal structure/constants of the ports system so that clients do not need to know about those details.
+    Serves as a bridge between the GUI app and the tcl interpreter.   Uses distributed objects to communicate with a delegte (GUI front-end).  All values exposed by the APIs to this class are generic objective-c data-types and not TCL DPObjects... clients talking to this class should not know or care that there's a tcl interpreter hiding underneath.   This class should also be the place to encapsulate all knowledge about the internal structure/constants of the ports system so that clients do not need to know about those details.
     This class is multi-threaded but all port operations are currently serialized (see more comments on this below)\
     The agent does not cache any information but rather always calls the tcl engine to talk to the ports collection and get the most recent information.   Caching should (and is) performed in the application front-end.    
 */
@@ -80,7 +80,7 @@ static NSString *DPUIDisplay = @"ui_display";
         _interpLock = [[NSLock alloc] init];
         _ports = [[NSMutableDictionary alloc] init];
         
-        // configure our tcl interpretter
+        // configure our tcl interpreter
         _interp = [[DPInterp alloc] init];
         [_interp loadPackage: DPPackageName version: DPPackageVersion usingCommand: DPPackageInit];
         [_interp redirectCommand: [DPObject objectWithString: DPUIPuts] toObject: self];
@@ -246,7 +246,7 @@ static NSString *DPUIDisplay = @"ui_display";
 
 /*
     Everything beyond this point code executes in secondary threads.  I've made a conscious effort to not share any objects (except for the _interpLock) between the primary thread and the secondary threads to minimize the need to worry about thread-safe data sharing between threads.
-    Even though we have a separate thread for each operation all operations are currently serialized using the _interpLock.   If we wish to allow multiple simultaneous operations in the future then each thread will have to instantiate it's own interpretter (and the gui will also have to be made more flexible to sort out messages coming back from multiple simultaneous operations).   
+    Even though we have a separate thread for each operation all operations are currently serialized using the _interpLock.   If we wish to allow multiple simultaneous operations in the future then each thread will have to instantiate it's own interpreter (and the gui will also have to be made more flexible to sort out messages coming back from multiple simultaneous operations).   
     If we allow multiple truly simultaneous operations we also need to think about situations such as what happens if you start installing Port A and Port B both of which have a dependency on C?  Does C get installed twice?  Or even worse what if you start installing port A which depends on port C and simultaneously start uninstalling C?  etc.   For now easier to sidestep the whole issue by serializing everything.
 */
 
